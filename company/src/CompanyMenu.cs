@@ -13,12 +13,14 @@ internal sealed class CompanyMenu : IClickableMenu
     private int SelectedTab;
     private int WarehousePage;
     private int ContractPage;
+    private int ClientPage;
     private string WarehouseMessage = "창고 탭에 들어오면 공동 창고 관리권을 자동으로 요청합니다.";
     private string ProductionMessage = "회사 창고의 원물을 사용해 완제품 생산을 시작할 수 있습니다.";
     private string ContractMessage = "오늘의 계약을 수락하거나 진행 중인 계약에 완제품을 납품할 수 있습니다.";
 
     private const int WarehouseRowsPerPage = 6;
     private const int ContractRowsPerPage = 5;
+    private const int ClientRowsPerPage = 5;
 
     private static readonly Color Green = new(48, 78, 58);
     private static readonly Color Green2 = new(78, 118, 84);
@@ -37,6 +39,7 @@ internal sealed class CompanyMenu : IClickableMenu
         Mod = mod;
         Mod.Company.EnsureState();
         Mod.Production.EnsureState();
+        Mod.Clients.EnsureState();
         Mod.Contracts.EnsureState();
 
         string[] names = { "대시보드", "생산", "창고", "계약", "거래처", "연구개발", "브랜드", "직원", "재무" };
@@ -81,6 +84,8 @@ internal sealed class CompanyMenu : IClickableMenu
             HandleWarehouseClick(x, y);
         else if (SelectedTab == 3)
             HandleContractClick(x, y);
+        else if (SelectedTab == 4)
+            HandleClientClick(x, y);
     }
 
     public override void receiveScrollWheelAction(int direction)
@@ -102,6 +107,16 @@ internal sealed class CompanyMenu : IClickableMenu
                 ContractPage++;
             else if (direction > 0 && ContractPage > 0)
                 ContractPage--;
+            return;
+        }
+
+        if (SelectedTab == 4)
+        {
+            int maxPage = GetClientMaxPage();
+            if (direction < 0 && ClientPage < maxPage)
+                ClientPage++;
+            else if (direction > 0 && ClientPage > 0)
+                ClientPage--;
         }
     }
 
@@ -122,6 +137,8 @@ internal sealed class CompanyMenu : IClickableMenu
             DrawWarehouse(b);
         else if (SelectedTab == 3)
             DrawContracts(b);
+        else if (SelectedTab == 4)
+            DrawClients(b);
         else
             DrawComingSoon(b, Tabs[SelectedTab].Name);
 
@@ -132,7 +149,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private void DrawSidebar(SpriteBatch b)
     {
         b.DrawString(Game1.dialogueFont, "농업회사", new Vector2(xPositionOnScreen + 25, yPositionOnScreen + 23), Color.White);
-        b.DrawString(Game1.smallFont, "COMPANY 0.4", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
+        b.DrawString(Game1.smallFont, "COMPANY 0.5", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
 
         for (int i = 0; i < Tabs.Count; i++)
         {
@@ -168,25 +185,25 @@ internal sealed class CompanyMenu : IClickableMenu
 
         int sectionY = cardY + 125;
         b.DrawString(Game1.dialogueFont, "회사 운영 흐름", new Vector2(x, sectionY), Game1.textColor);
-        b.DrawString(Game1.smallFont, "농산물을 창고에 입고하고 생산라인에서 가공한 뒤 계약 납품으로 회사 매출을 만듭니다.", new Vector2(x, sectionY + 39), Muted);
+        b.DrawString(Game1.smallFont, "납품을 반복하면 거래처 신뢰가 쌓이고 정기·우선·핵심 파트너 계약으로 성장합니다.", new Vector2(x, sectionY + 39), Muted);
 
         int rowY = sectionY + 78;
         int rowW = (w - 36) / 4;
         DrawStatCard(b, x, rowY, rowW, "이번 계절 매출", $"{c.SeasonRevenue:N0}G");
         DrawStatCard(b, x + rowW + 12, rowY, rowW, "누적 매출", $"{c.LifetimeRevenue:N0}G");
         DrawStatCard(b, x + (rowW + 12) * 2, rowY, rowW, "완료 계약", $"{c.ContractsCompleted:N0}건");
-        DrawStatCard(b, x + (rowW + 12) * 3, rowY, rowW, "실패 계약", $"{c.ContractsFailed:N0}건");
+        DrawStatCard(b, x + (rowW + 12) * 3, rowY, rowW, "단골 이상", $"{Mod.ClientProfiles.Count(p => Mod.Clients.GetRelationship(p.Key).Trust >= 20):N0}곳");
 
         string status = !Context.IsMultiplayer
             ? "싱글플레이 · 회사 데이터 저장 중"
             : Mod.Multiplayer.IsSynchronized
-                ? "멀티플레이 · 공동 경영 데이터 동기화 완료 · 전원 동등 권한"
+                ? "멀티플레이 · 거래처 관계 포함 공동 회사 데이터 동기화 완료"
                 : "멀티플레이 · 공동 경영 데이터 동기화 중";
 
         int noteY = rowY + 145;
         drawTextureBox(b, x, noteY, w, 82, Color.White);
-        b.DrawString(Game1.smallFont, "Agricultural Company 0.4 · Contract & Revenue Loop", new Vector2(x + 18, noteY + 14), Accent);
-        b.DrawString(Game1.smallFont, "농사 → 창고 → 생산 → 계약 → 납품 → 회사 자금", new Vector2(x + 18, noteY + 39), Game1.textColor);
+        b.DrawString(Game1.smallFont, "Agricultural Company 0.5 · Client Relationship", new Vector2(x + 18, noteY + 14), Accent);
+        b.DrawString(Game1.smallFont, "농사 → 생산 → 계약 → 납품 → 거래처 신뢰 → 더 큰 계약", new Vector2(x + 18, noteY + 39), Game1.textColor);
         b.DrawString(Game1.smallFont, status, new Vector2(x + 18, noteY + 60), Muted);
     }
 
@@ -444,7 +461,7 @@ internal sealed class CompanyMenu : IClickableMenu
         CompanySaveData c = Mod.State;
 
         b.DrawString(Game1.dialogueFont, "계약 · 납품", new Vector2(x, y), Game1.textColor);
-        b.DrawString(Game1.smallFont, "완제품을 납품해 회사 자금과 평판을 올립니다. 모든 공동 경영자가 동일하게 처리할 수 있습니다.", new Vector2(x, y + 43), Muted);
+        b.DrawString(Game1.smallFont, "완제품을 납품해 회사 자금과 평판, 거래처 신뢰를 함께 올립니다.", new Vector2(x, y + 43), Muted);
 
         int infoY = y + 72;
         DrawMiniInfo(b, new Rectangle(x, infoY, 185, 55), "회사 자금", $"{c.CompanyFunds:N0}G");
@@ -480,10 +497,11 @@ internal sealed class CompanyMenu : IClickableMenu
                 string quantity = active ? $"{contract.DeliveredQuantity}/{contract.RequiredQuantity}" : $"{contract.RequiredQuantity}개";
                 int qualifying = Mod.Contracts.GetQualifyingFinishedQuantity(contract.ProductKey, contract.MinimumQuality);
                 int days = Mod.Contracts.GetDaysRemaining(contract);
+                ClientRelationship relation = Mod.Clients.GetRelationship(contract.ClientKey);
 
-                b.DrawString(Game1.smallFont, $"[{state}] {contract.ClientName} · {product}", new Vector2(rect.X + 10, rect.Y + 7), Game1.textColor);
+                b.DrawString(Game1.smallFont, $"[{state}/{contract.ContractKind}] {contract.ClientName} · {product}", new Vector2(rect.X + 10, rect.Y + 7), Game1.textColor);
                 b.DrawString(Game1.smallFont, $"수량 {quantity} · {ContractCore.QualityRequirementText(contract.MinimumQuality)} · 납기 {days}일", new Vector2(rect.X + 10, rect.Y + 33), Muted);
-                b.DrawString(Game1.smallFont, $"재고 {qualifying:N0} · 보상 {contract.RewardGold:N0}G · 평판 +{contract.ReputationReward}", new Vector2(rect.X + 335, rect.Y + 33), Accent);
+                b.DrawString(Game1.smallFont, $"재고 {qualifying:N0} · {contract.RewardGold:N0}G · 신뢰 {relation.Trust}/100", new Vector2(rect.X + 350, rect.Y + 33), Accent);
 
                 bool synced = !Context.IsMultiplayer || Mod.Multiplayer.IsSynchronized;
                 bool canAction = synced && (active ? qualifying > 0 : c.AcceptedContracts.Count < Mod.Contracts.GetActiveCapacity());
@@ -535,6 +553,90 @@ internal sealed class CompanyMenu : IClickableMenu
         }
     }
 
+    private void DrawClients(SpriteBatch b)
+    {
+        Mod.Clients.EnsureState();
+        int x = xPositionOnScreen + 245;
+        int y = yPositionOnScreen + 24;
+        int w = width - 280;
+
+        IReadOnlyList<ClientProfileDefinition> clients = Mod.Clients.GetVisibleClients();
+        List<ClientProfileDefinition> unlocked = clients.Where(p => p.RequiredCompanyLevel <= Mod.State.Level).ToList();
+        int regular = unlocked.Count(p => Mod.Clients.GetRelationship(p.Key).Trust >= 20);
+        int core = unlocked.Count(p => Mod.Clients.GetRelationship(p.Key).Trust >= 80);
+        int averageTrust = unlocked.Count == 0 ? 0 : (int)Math.Round(unlocked.Average(p => Mod.Clients.GetRelationship(p.Key).Trust));
+
+        b.DrawString(Game1.dialogueFont, "거래처 관계", new Vector2(x, y), Game1.textColor);
+        b.DrawString(Game1.smallFont, "계약 실적이 거래처별로 누적됩니다. 신뢰가 오르면 정기·우선·핵심 계약과 보상 보너스가 열립니다.", new Vector2(x, y + 43), Muted);
+
+        int infoY = y + 72;
+        DrawMiniInfo(b, new Rectangle(x, infoY, 185, 55), "거래 가능", $"{unlocked.Count}/{clients.Count}");
+        DrawMiniInfo(b, new Rectangle(x + 196, infoY, 185, 55), "평균 신뢰", $"{averageTrust}/100");
+        DrawMiniInfo(b, new Rectangle(x + 392, infoY, 185, 55), "단골 이상", $"{regular}곳");
+        DrawMiniInfo(b, new Rectangle(x + 588, infoY, w - 608, 55), "핵심 파트너", $"{core}곳");
+
+        int start = ClientPage * ClientRowsPerPage;
+        int listY = y + 143;
+        for (int row = 0; row < ClientRowsPerPage; row++)
+        {
+            int index = start + row;
+            if (index >= clients.Count)
+                break;
+
+            ClientProfileDefinition profile = clients[index];
+            ClientRelationship relation = Mod.Clients.GetRelationship(profile.Key);
+            bool levelUnlocked = profile.RequiredCompanyLevel <= Mod.State.Level;
+            bool productAvailable = Mod.Contracts.IsProductAvailable(profile.PreferredProductKey);
+            bool available = levelUnlocked && productAvailable;
+            Rectangle rect = new(x, listY + row * 82, w - 20, 74);
+            b.Draw(Game1.fadeToBlackRect, rect, row % 2 == 0 ? Soft : new Color(246, 246, 239));
+
+            string tier = Mod.Clients.GetTierName(relation.Trust);
+            string product = Mod.Contracts.GetProductName(profile.PreferredProductKey);
+            string availability = available ? tier : !levelUnlocked ? $"회사 Lv.{profile.RequiredCompanyLevel} 필요" : "연동 작물 모드 필요";
+            Color main = available ? Game1.textColor : Disabled;
+
+            b.DrawString(Game1.smallFont, $"{profile.DisplayName} · {profile.Category}", new Vector2(rect.X + 10, rect.Y + 6), main);
+            b.DrawString(Game1.smallFont, availability, new Vector2(rect.X + 10, rect.Y + 32), available ? Accent : Disabled);
+
+            Rectangle trustBack = new(rect.X + 210, rect.Y + 13, 145, 12);
+            b.Draw(Game1.fadeToBlackRect, trustBack, new Color(215, 211, 195));
+            b.Draw(Game1.fadeToBlackRect, new Rectangle(trustBack.X, trustBack.Y, (int)(trustBack.Width * Math.Clamp(relation.Trust / 100f, 0f, 1f)), trustBack.Height), available ? Accent : Disabled);
+            b.DrawString(Game1.smallFont, $"신뢰 {relation.Trust}/100", new Vector2(rect.X + 210, rect.Y + 32), Muted);
+
+            int rewardBonus = Mod.Clients.GetRewardBonusPercent(profile.Key);
+            int quantityBonus = Mod.Clients.GetQuantityBonusPercent(profile.Key);
+            b.DrawString(Game1.smallFont, $"선호 {product}", new Vector2(rect.X + 375, rect.Y + 7), main);
+            b.DrawString(Game1.smallFont, $"완료 {relation.CompletedContracts} · 실패 {relation.FailedContracts} · 정시 {relation.OnTimeDeliveries}", new Vector2(rect.X + 375, rect.Y + 31), Muted);
+            b.DrawString(Game1.smallFont, $"누적 {relation.LifetimeRevenue:N0}G · 보상 +{rewardBonus}% · 물량 +{quantityBonus}%", new Vector2(rect.X + 570, rect.Y + 31), available ? Accent : Disabled);
+        }
+
+        Rectangle note = new(x, y + 558, w - 20, 44);
+        b.Draw(Game1.fadeToBlackRect, note, Soft);
+        b.DrawString(Game1.smallFont, "신뢰 20: 정기계약 · 50: 우선계약 · 80: 핵심 파트너 · 멀티에서는 전원이 같은 관계 기록을 공유합니다.", new Vector2(note.X + 12, note.Y + 11), Muted);
+
+        int maxPage = GetClientMaxPage();
+        DrawSmallButton(b, ClientPrevRect(), "< 이전", ClientPage > 0 ? Button : Disabled);
+        DrawSmallButton(b, ClientNextRect(), "다음 >", ClientPage < maxPage ? Button : Disabled);
+        b.DrawString(Game1.smallFont, $"{ClientPage + 1} / {maxPage + 1}", new Vector2(x + w - 160, y + 617), Muted);
+    }
+
+    private void HandleClientClick(int x, int y)
+    {
+        if (ClientPrevRect().Contains(x, y) && ClientPage > 0)
+        {
+            ClientPage--;
+            Game1.playSound("shiny4");
+            return;
+        }
+
+        if (ClientNextRect().Contains(x, y) && ClientPage < GetClientMaxPage())
+        {
+            ClientPage++;
+            Game1.playSound("shiny4");
+        }
+    }
+
     private List<(CompanyContract Contract, bool Active)> GetContractRows()
     {
         List<(CompanyContract Contract, bool Active)> result = new();
@@ -558,6 +660,15 @@ internal sealed class CompanyMenu : IClickableMenu
 
     private int GetContractMaxPage()
         => Math.Max(0, (GetContractRows().Count - 1) / ContractRowsPerPage);
+
+    private Rectangle ClientPrevRect()
+        => new(xPositionOnScreen + width - 360, yPositionOnScreen + height - 45, 85, 32);
+
+    private Rectangle ClientNextRect()
+        => new(xPositionOnScreen + width - 265, yPositionOnScreen + height - 45, 85, 32);
+
+    private int GetClientMaxPage()
+        => Math.Max(0, (Mod.Clients.GetVisibleClients().Count - 1) / ClientRowsPerPage);
 
     private Rectangle WarehouseButtonRect(int row, int action)
     {

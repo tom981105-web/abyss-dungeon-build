@@ -18,6 +18,11 @@ internal sealed class ContractCore
         Mod.State.AcceptedContracts ??= new List<CompanyContract>();
         Mod.State.AvailableContracts.RemoveAll(p => p is null || string.IsNullOrWhiteSpace(p.Id) || string.IsNullOrWhiteSpace(p.ProductKey));
         Mod.State.AcceptedContracts.RemoveAll(p => p is null || string.IsNullOrWhiteSpace(p.Id) || string.IsNullOrWhiteSpace(p.ProductKey));
+        Mod.Clients.EnsureState();
+
+        foreach (CompanyContract contract in Mod.State.AvailableContracts.Concat(Mod.State.AcceptedContracts))
+            MigrateClientKey(contract);
+
         Mod.State.ActiveContracts = Mod.State.AcceptedContracts.Count;
     }
 
@@ -37,6 +42,7 @@ internal sealed class ContractCore
             Mod.State.AcceptedContracts.Remove(contract);
             Mod.State.ContractsFailed++;
             Mod.State.Reputation = Math.Max(0, Mod.State.Reputation - Math.Max(0, contract.FailureReputationPenalty));
+            Mod.Clients.RecordFailedContract(contract, today);
         }
         Mod.State.ActiveContracts = Mod.State.AcceptedContracts.Count;
 
@@ -108,7 +114,7 @@ internal sealed class ContractCore
         Mod.State.AvailableContracts.Remove(contract);
         Mod.State.AcceptedContracts.Add(contract);
         Mod.State.ActiveContracts = Mod.State.AcceptedContracts.Count;
-        message = $"{contract.ClientName} 계약을 수락했습니다.";
+        message = $"[{contract.ContractKind}] {contract.ClientName} 계약을 수락했습니다.";
         return true;
     }
 
@@ -181,7 +187,8 @@ internal sealed class ContractCore
         }
 
         CompleteContract(contract);
-        message = $"계약 완료! {contract.ClientName}에서 {contract.RewardGold:N0}G를 회사에 지급했습니다.";
+        ClientRelationship relation = Mod.Clients.GetRelationship(contract.ClientKey);
+        message = $"계약 완료! {contract.ClientName} · 회사 +{contract.RewardGold:N0}G · 신뢰 {relation.Trust}/100";
         return true;
     }
 
@@ -198,6 +205,14 @@ internal sealed class ContractCore
 
     internal int GetDaysRemaining(CompanyContract contract)
         => Math.Max(0, contract.DeadlineDayNumber - GetCurrentDayNumber());
+
+    internal bool IsProductAvailable(string productKey)
+    {
+        if (string.Equals(productKey, "TomatoJuice", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return Mod.Helper.ModRegistry.IsLoaded("Saebyeol.WatermelonGenetics");
+    }
 
     private int ConsumeFinishedGoods(string productKey, int minimumQuality, int requested)
     {
@@ -226,6 +241,7 @@ internal sealed class ContractCore
 
     private void CompleteContract(CompanyContract contract)
     {
+        int today = GetCurrentDayNumber();
         Mod.State.AcceptedContracts.Remove(contract);
         Mod.State.ActiveContracts = Mod.State.AcceptedContracts.Count;
         Mod.State.ContractsCompleted++;
@@ -233,6 +249,7 @@ internal sealed class ContractCore
         Mod.State.LifetimeRevenue += Math.Max(0, contract.RewardGold);
         Mod.State.SeasonRevenue += Math.Max(0, contract.RewardGold);
         Mod.State.Reputation += Math.Max(0, contract.ReputationReward);
+        Mod.Clients.RecordCompletedContract(contract, today);
         Mod.Company.AddCompanyExperience(10 + Math.Max(1, contract.RequiredQuantity / 2));
     }
 
@@ -254,26 +271,54 @@ internal sealed class ContractCore
         int today = GetCurrentDayNumber();
         int seed = HashCode.Combine(today, Mod.State.Level, Mod.State.Reputation, Mod.State.ContractsCompleted);
         Random random = new(seed);
-        eligible = eligible.OrderBy(_ => random.Next()).ToList();
 
-        int count = Math.Min(4, eligible.Count);
-        for (int i = 0; i < count; i++)
+        // Established clients get a predictable place on the board; the remaining slots stay varied.
+        List<ContractTemplateDefinition> selected = new();
+        ContractTemplateDefinition? relationshipPick = eligible
+            .Where(p => !string.IsNullOrWhiteSpace(p.ClientKey) && Mod.Clients.GetRelationship(p.ClientKey).Trust >= 20)
+            .OrderByDescending(p => Mod.Clients.GetRelationship(p.ClientKey).Trust)
+            .ThenBy(_ => random.Next())
+            .FirstOrDefault();
+        if (relationshipPick is not null)
+            selected.Add(relationshipPick);
+
+        foreach (ContractTemplateDefinition template in eligible
+            .Where(p => relationshipPick is null || !string.Equals(p.Key, relationshipPick.Key, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(p => random.NextDouble() - Math.Min(100, Mod.Clients.GetRelationship(p.ClientKey).Trust) / 250.0))
         {
-            ContractTemplateDefinition template = eligible[i];
-            int quantityScale = 100 + Math.Max(0, Mod.State.Level - 1) * 12 + random.Next(0, 26);
+            if (selected.Count >= Math.Min(4, eligible.Count))
+                break;
+            selected.Add(template);
+        }
+
+        foreach (ContractTemplateDefinition template in selected)
+        {
+            string clientKey = ResolveClientKey(template);
+            ClientRelationship relation = Mod.Clients.GetRelationship(clientKey);
+            int quantityBonus = Mod.Clients.GetQuantityBonusPercent(clientKey);
+            int rewardBonus = Mod.Clients.GetRewardBonusPercent(clientKey);
+
+            int quantityScale = 100 + Math.Max(0, Mod.State.Level - 1) * 12 + random.Next(0, 26) + quantityBonus;
             int quantity = Math.Max(1, template.BaseQuantity * quantityScale / 100);
-            int quality = RollMinimumQuality(random, Mod.State.Level);
+            int quality = RollMinimumQuality(random, Mod.State.Level, relation.Trust);
             float qualityMultiplier = quality switch { 1 => 1.18f, 2 => 1.42f, 4 => 1.85f, _ => 1f };
-            int reward = (int)Math.Round(quantity * template.BaseUnitReward * qualityMultiplier);
+            int reward = (int)Math.Round(quantity * template.BaseUnitReward * qualityMultiplier * (100 + rewardBonus) / 100f);
             int minDays = Math.Max(1, template.MinDeadlineDays);
             int maxDays = Math.Max(minDays, template.MaxDeadlineDays);
             int deadlineDays = random.Next(minDays, maxDays + 1);
 
+            // Long-term partners get a small scheduling advantage so regular supply feels dependable rather than punitive.
+            if (relation.Trust >= 50)
+                deadlineDays += 1;
+
+            ClientProfileDefinition? profile = Mod.Clients.GetProfile(clientKey);
             Mod.State.AvailableContracts.Add(new CompanyContract
             {
                 TemplateKey = template.Key,
-                ClientName = template.ClientName,
+                ClientKey = clientKey,
+                ClientName = profile?.DisplayName ?? template.ClientName,
                 ProductKey = template.ProductKey,
+                ContractKind = Mod.Clients.GetContractKind(clientKey),
                 RequiredQuantity = quantity,
                 DeliveredQuantity = 0,
                 MinimumQuality = quality,
@@ -286,23 +331,43 @@ internal sealed class ContractCore
         }
     }
 
-    private bool IsProductAvailable(string productKey)
+    private void MigrateClientKey(CompanyContract contract)
     {
-        if (string.Equals(productKey, "TomatoJuice", StringComparison.OrdinalIgnoreCase))
-            return true;
+        if (!string.IsNullOrWhiteSpace(contract.ClientKey))
+            return;
 
-        // Crop Genetics is optional; don't generate its delivery work when it isn't installed.
-        return Mod.Helper.ModRegistry.IsLoaded("Saebyeol.WatermelonGenetics");
+        ContractTemplateDefinition? template = Mod.ContractTemplates.FirstOrDefault(p => string.Equals(p.Key, contract.TemplateKey, StringComparison.OrdinalIgnoreCase));
+        if (template is not null)
+            contract.ClientKey = ResolveClientKey(template);
+
+        if (string.IsNullOrWhiteSpace(contract.ClientKey))
+        {
+            ClientProfileDefinition? profile = Mod.ClientProfiles.FirstOrDefault(p => string.Equals(p.DisplayName, contract.ClientName, StringComparison.CurrentCultureIgnoreCase));
+            contract.ClientKey = profile?.Key ?? contract.ClientName;
+        }
+
+        if (string.IsNullOrWhiteSpace(contract.ContractKind))
+            contract.ContractKind = Mod.Clients.GetContractKind(contract.ClientKey);
     }
 
-    private static int RollMinimumQuality(Random random, int level)
+    private string ResolveClientKey(ContractTemplateDefinition template)
+    {
+        if (!string.IsNullOrWhiteSpace(template.ClientKey))
+            return template.ClientKey;
+
+        ClientProfileDefinition? profile = Mod.ClientProfiles.FirstOrDefault(p => string.Equals(p.DisplayName, template.ClientName, StringComparison.CurrentCultureIgnoreCase));
+        return profile?.Key ?? template.ClientName;
+    }
+
+    private static int RollMinimumQuality(Random random, int level, int trust)
     {
         int roll = random.Next(100);
-        if (level >= 5 && roll < 8)
+        int partnerBonus = trust >= 80 ? 8 : trust >= 50 ? 4 : 0;
+        if (level >= 5 && roll < 8 + partnerBonus / 2)
             return 4;
-        if (level >= 3 && roll < 25)
+        if (level >= 3 && roll < 25 + partnerBonus)
             return 2;
-        if (level >= 2 && roll < 48)
+        if (level >= 2 && roll < 48 + partnerBonus)
             return 1;
         return 0;
     }

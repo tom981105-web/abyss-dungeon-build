@@ -1,0 +1,72 @@
+[
+  {
+    "Key": "PelicanMarket",
+    "DisplayName": "펠리컨 마트",
+    "Category": "지역 마트",
+    "Description": "대량의 기본 가공품을 안정적으로 공급받길 원하는 지역 유통 거래처입니다.",
+    "PreferredProductKey": "TomatoJuice",
+    "RequiredCompanyLevel": 1,
+    "CompletionTrust": 6,
+    "FailureTrustPenalty": 6
+  },
+  {
+    "Key": "ValleyDiner",
+    "DisplayName": "계곡 식당",
+    "Category": "식당",
+    "Description": "납기 준수와 꾸준한 공급을 중요하게 보는 외식 거래처입니다.",
+    "PreferredProductKey": "TomatoJuice",
+    "RequiredCompanyLevel": 1,
+    "CompletionTrust": 7,
+    "FailureTrustPenalty": 7
+  },
+  {
+    "Key": "CoastalCafe",
+    "DisplayName": "해안 카페",
+    "Category": "카페",
+    "Description": "과일 음료의 품질을 중시하며 좋은 관계가 쌓일수록 프리미엄 주문이 늘어납니다.",
+    "PreferredProductKey": "WatermelonJuice",
+    "RequiredCompanyLevel": 1,
+    "CompletionTrust": 7,
+    "FailureTrustPenalty": 7
+  },
+  {
+    "Key": "RegionalSpecialtyStore",
+    "DisplayName": "지역 특산품 상회",
+    "Category": "특산품점",
+    "Description": "선물용 상품과 높은 품질을 선호하는 프리미엄 소매 거래처입니다.",
+    "PreferredProductKey": "ChamoeGiftSet",
+    "RequiredCompanyLevel": 2,
+    "CompletionTrust": 8,
+    "FailureTrustPenalty": 8
+  },
+  {
+    "Key": "ValleyKimchiWorkshop",
+    "DisplayName": "계곡 김치공방",
+    "Category": "식품 공방",
+    "Description": "절임 원물을 반복적으로 공급받는 생산형 거래처로 정기계약과 잘 맞습니다.",
+    "PreferredProductKey": "SaltedNapaCabbage",
+    "RequiredCompanyLevel": 2,
+    "CompletionTrust": 8,
+    "FailureTrustPenalty": 8
+  },
+  {
+    "Key": "ZuzuFoodDistribution",
+    "DisplayName": "주주시티 식품유통",
+    "Category": "광역 유통",
+    "Description": "대량 물량과 납기 실적을 요구하지만 장기 관계가 형성되면 큰 계약을 제공합니다.",
+    "PreferredProductKey": "TomatoJuice",
+    "RequiredCompanyLevel": 3,
+    "CompletionTrust": 9,
+    "FailureTrustPenalty": 9
+  },
+  {
+    "Key": "ZuzuBeverageDistribution",
+    "DisplayName": "주주시티 음료유통",
+    "Category": "광역 음료유통",
+    "Description": "과일 음료를 대량 매입하며 높은 신뢰도에서는 우선 공급 계약이 등장합니다.",
+    "PreferredProductKey": "WatermelonJuice",
+    "RequiredCompanyLevel": 3,
+    "CompletionTrust": 9,
+    "FailureTrustPenalty": 9
+  }
+]

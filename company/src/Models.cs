@@ -36,6 +36,9 @@ public sealed class CompanySaveData
     public List<CompanyContract> AvailableContracts { get; set; } = new();
     public List<CompanyContract> AcceptedContracts { get; set; } = new();
 
+    // 0.5 persistent client relationships. Shared by every co-owner in multiplayer.
+    public Dictionary<string, ClientRelationship> ClientRelationships { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
     // Multiplayer snapshot revision.
     public long NetworkRevision { get; set; }
 }
@@ -88,6 +91,7 @@ public sealed class ProductStockEntry
 public sealed class ContractTemplateDefinition
 {
     public string Key { get; set; } = "";
+    public string ClientKey { get; set; } = "";
     public string ClientName { get; set; } = "";
     public string ProductKey { get; set; } = "";
     public int BaseQuantity { get; set; } = 8;
@@ -101,8 +105,10 @@ public sealed class CompanyContract
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string TemplateKey { get; set; } = "";
+    public string ClientKey { get; set; } = "";
     public string ClientName { get; set; } = "";
     public string ProductKey { get; set; } = "";
+    public string ContractKind { get; set; } = "일반";
     public int RequiredQuantity { get; set; }
     public int DeliveredQuantity { get; set; }
     public int MinimumQuality { get; set; }
@@ -111,4 +117,29 @@ public sealed class CompanyContract
     public int FailureReputationPenalty { get; set; } = 1;
     public int CreatedDayNumber { get; set; }
     public int DeadlineDayNumber { get; set; }
+}
+
+public sealed class ClientProfileDefinition
+{
+    public string Key { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Category { get; set; } = "거래처";
+    public string Description { get; set; } = "";
+    public string PreferredProductKey { get; set; } = "";
+    public int RequiredCompanyLevel { get; set; } = 1;
+    public int CompletionTrust { get; set; } = 6;
+    public int FailureTrustPenalty { get; set; } = 7;
+}
+
+public sealed class ClientRelationship
+{
+    public string ClientKey { get; set; } = "";
+    public int Trust { get; set; }
+    public int CompletedContracts { get; set; }
+    public int FailedContracts { get; set; }
+    public int OnTimeDeliveries { get; set; }
+    public int HighQualityDeliveries { get; set; }
+    public long LifetimeRevenue { get; set; }
+    public long DeliveredUnits { get; set; }
+    public int LastContractDayNumber { get; set; }
 }

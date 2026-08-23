@@ -1,6 +1,7 @@
 [
   {
     "Key": "PelicanMarketTomato",
+    "ClientKey": "PelicanMarket",
     "ClientName": "펠리컨 마트",
     "ProductKey": "TomatoJuice",
     "BaseQuantity": 8,
@@ -11,6 +12,7 @@
   },
   {
     "Key": "ValleyDinerTomato",
+    "ClientKey": "ValleyDiner",
     "ClientName": "계곡 식당",
     "ProductKey": "TomatoJuice",
     "BaseQuantity": 12,
@@ -21,6 +23,7 @@
   },
   {
     "Key": "CoastalCafeWatermelon",
+    "ClientKey": "CoastalCafe",
     "ClientName": "해안 카페",
     "ProductKey": "WatermelonJuice",
     "BaseQuantity": 10,
@@ -31,6 +34,7 @@
   },
   {
     "Key": "RegionalStoreChamoe",
+    "ClientKey": "RegionalSpecialtyStore",
     "ClientName": "지역 특산품 상회",
     "ProductKey": "ChamoeGiftSet",
     "BaseQuantity": 5,
@@ -41,6 +45,7 @@
   },
   {
     "Key": "KimchiWorkshopNapa",
+    "ClientKey": "ValleyKimchiWorkshop",
     "ClientName": "계곡 김치공방",
     "ProductKey": "SaltedNapaCabbage",
     "BaseQuantity": 16,
@@ -51,6 +56,7 @@
   },
   {
     "Key": "ZuzuDistributorTomato",
+    "ClientKey": "ZuzuFoodDistribution",
     "ClientName": "주주시티 식품유통",
     "ProductKey": "TomatoJuice",
     "BaseQuantity": 24,
@@ -61,6 +67,7 @@
   },
   {
     "Key": "ZuzuDistributorWatermelon",
+    "ClientKey": "ZuzuBeverageDistribution",
     "ClientName": "주주시티 음료유통",
     "ProductKey": "WatermelonJuice",
     "BaseQuantity": 20,
