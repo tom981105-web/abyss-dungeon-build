@@ -148,15 +148,15 @@ internal sealed class ProductionQualityCore
             changed = true;
         }
 
-        changed |= Set(ref job.ProcessQualityScore, forecast.ProcessQualityScore);
-        changed |= Set(ref job.ForecastQualityScore, forecast.FinalQualityScore);
-        changed |= Set(ref job.ExpectedYieldPercent, forecast.ExpectedYieldPercent);
-        changed |= Set(ref job.EstimatedMinOutput, forecast.MinOutput);
-        changed |= Set(ref job.EstimatedMaxOutput, forecast.MaxOutput);
-        changed |= Set(ref job.SGradeChance, forecast.SChance);
-        changed |= Set(ref job.AGradeChance, forecast.AChance);
-        changed |= Set(ref job.BGradeChance, forecast.BChance);
-        changed |= Set(ref job.CGradeChance, forecast.CChance);
+        if (job.ProcessQualityScore != forecast.ProcessQualityScore) { job.ProcessQualityScore = forecast.ProcessQualityScore; changed = true; }
+        if (job.ForecastQualityScore != forecast.FinalQualityScore) { job.ForecastQualityScore = forecast.FinalQualityScore; changed = true; }
+        if (job.ExpectedYieldPercent != forecast.ExpectedYieldPercent) { job.ExpectedYieldPercent = forecast.ExpectedYieldPercent; changed = true; }
+        if (job.EstimatedMinOutput != forecast.MinOutput) { job.EstimatedMinOutput = forecast.MinOutput; changed = true; }
+        if (job.EstimatedMaxOutput != forecast.MaxOutput) { job.EstimatedMaxOutput = forecast.MaxOutput; changed = true; }
+        if (job.SGradeChance != forecast.SChance) { job.SGradeChance = forecast.SChance; changed = true; }
+        if (job.AGradeChance != forecast.AChance) { job.AGradeChance = forecast.AChance; changed = true; }
+        if (job.BGradeChance != forecast.BChance) { job.BGradeChance = forecast.BChance; changed = true; }
+        if (job.CGradeChance != forecast.CChance) { job.CGradeChance = forecast.CChance; changed = true; }
 
         Random result = new(job.ResultSeed);
         int gradeRoll = result.Next(100);
@@ -172,8 +172,9 @@ internal sealed class ProductionQualityCore
         }
 
         int actualQuality = ProductionCore.QualityFromGrade(actualGrade);
-        changed |= Set(ref job.OutputQuality, actualQuality);
-        changed |= Set(ref job.EstimatedOutputQuantity, Math.Max(1, actualOutput));
+        if (job.OutputQuality != actualQuality) { job.OutputQuality = actualQuality; changed = true; }
+        actualOutput = Math.Max(1, actualOutput);
+        if (job.EstimatedOutputQuantity != actualOutput) { job.EstimatedOutputQuantity = actualOutput; changed = true; }
         return changed;
     }
 
@@ -322,16 +323,9 @@ internal sealed class ProductionQualityCore
             int hash = 17;
             foreach (char ch in text ?? "")
                 hash = hash * 31 + ch;
+            hash &= 0x7fffffff;
             return hash == 0 ? 1 : hash;
         }
-    }
-
-    private static bool Set(ref int field, int value)
-    {
-        if (field == value)
-            return false;
-        field = value;
-        return true;
     }
 
     private sealed class PendingReport
