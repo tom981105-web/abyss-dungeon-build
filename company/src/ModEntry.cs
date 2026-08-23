@@ -36,6 +36,7 @@ public sealed class ModEntry : Mod
         Multiplayer = new MultiplayerCore(this);
         Company.Initialize(helper);
         Production.Initialize();
+        Brand.Initialize();
         Multiplayer.Initialize();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
