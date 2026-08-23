@@ -67,15 +67,7 @@ internal sealed class CompanyCore
         Add(Mod.State.TodayHarvest, crop.ItemId, amount);
         Add(Mod.State.SeasonHarvest, crop.ItemId, amount);
         Add(Mod.State.LifetimeHarvest, crop.ItemId, amount);
-
-        int oldLevel = Mod.State.Level;
-        Mod.State.Experience += amount;
-        UpdateLevel(Mod.State);
-        if (Mod.State.Level > oldLevel)
-        {
-            Game1.addHUDMessage(new HUDMessage($"농업회사 단계 상승! {GetStageName(Mod.State.Level)}"));
-            Game1.playSound("achievement");
-        }
+        AddCompanyExperience(amount);
     }
 
     internal void EnsureState()
@@ -87,6 +79,8 @@ internal sealed class CompanyCore
         Mod.State.SeasonHarvest ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         Mod.State.LifetimeHarvest ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         Mod.State.Warehouse ??= new Dictionary<string, WarehouseStockEntry>(StringComparer.OrdinalIgnoreCase);
+        Mod.State.ProductionQueue ??= new List<ProductionJob>();
+        Mod.State.FinishedGoods ??= new Dictionary<string, ProductStockEntry>(StringComparer.OrdinalIgnoreCase);
 
         if (string.IsNullOrWhiteSpace(Mod.State.CompanyName))
         {
@@ -115,6 +109,13 @@ internal sealed class CompanyCore
                 Mod.State.Warehouse.Remove(key);
         }
 
+        foreach ((string key, ProductStockEntry entry) in Mod.State.FinishedGoods.ToList())
+        {
+            if (entry is null || string.IsNullOrWhiteSpace(entry.ProductKey) || entry.Quantity <= 0)
+                Mod.State.FinishedGoods.Remove(key);
+        }
+
+        Mod.State.ProductionQueue.RemoveAll(p => p is null || string.IsNullOrWhiteSpace(p.RecipeKey) || p.BatchCount <= 0 || p.RemainingMinutes <= 0);
         UpdateLevel(Mod.State);
     }
 
@@ -245,6 +246,21 @@ internal sealed class CompanyCore
             .Select(p => (p.Key, p.Sum(x => x.Quantity)))
             .ToList();
 
+    internal void AddCompanyExperience(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        int oldLevel = Mod.State.Level;
+        Mod.State.Experience += amount;
+        UpdateLevel(Mod.State);
+        if (Context.IsWorldReady && Mod.State.Level > oldLevel)
+        {
+            Game1.addHUDMessage(new HUDMessage($"농업회사 단계 상승! {GetStageName(Mod.State.Level)}"));
+            Game1.playSound("achievement");
+        }
+    }
+
     private void AddWarehouse(string itemId, int quality, int amount)
     {
         if (amount <= 0)
@@ -259,7 +275,7 @@ internal sealed class CompanyCore
         entry.Quantity += amount;
     }
 
-    private void CleanupWarehouse()
+    internal void CleanupWarehouse()
     {
         foreach ((string key, WarehouseStockEntry entry) in Mod.State.Warehouse.ToList())
         {
