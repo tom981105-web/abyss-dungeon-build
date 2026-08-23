@@ -81,8 +81,8 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.8.5 keeps the stable 0.8.4 functional layout and adds authored
-        // machinery/process/product sprites plus subtle timber/paper visual assets.
+        // 0.8.6 keeps the stable 0.8.4 functional layout, but cleans the 0.8.5
+        // artwork into a fully transparent, consistent pixel-art atlas with legacy badge clearing.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -93,7 +93,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.8.5 loaded. Visual Fidelity Pass enabled with safe fallback rendering for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.8.6 loaded. Pixel Art Cleanup enabled with transparent sprite rendering for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
