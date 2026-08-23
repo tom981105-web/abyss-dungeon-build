@@ -1,7 +1,7 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.7.4.1",
+  "Version": "0.7.5",
   "Description": "UI hotfix for Production 2.x: UI-scale-aware centering, reliable production-tab routing, corrected catalog placement, unified product-icon overlays, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
