@@ -24,7 +24,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.1 loaded. Tracking {Crops.Count} crop IDs. F7 opens company management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.2 loaded. Warehouse enabled. Tracking {Crops.Count} crop IDs. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
