@@ -1,0 +1,9 @@
+{
+  "Name": "Agricultural Company",
+  "Author": "Saebyeol",
+  "Version": "0.2.0",
+  "Description": "A standalone agricultural company management system with a persistent quality-aware company warehouse.",
+  "UniqueID": "Saebyeol.AgriculturalCompany",
+  "EntryDll": "AgriculturalCompany.dll",
+  "MinimumApiVersion": "4.0.0"
+}
