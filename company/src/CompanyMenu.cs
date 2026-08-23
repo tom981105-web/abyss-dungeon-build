@@ -12,7 +12,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private readonly List<(string Name, Rectangle Bounds)> Tabs = new();
     private int SelectedTab;
     private int WarehousePage;
-    private string WarehouseMessage = "작물을 선택해 회사 창고로 입고하거나 다시 꺼낼 수 있습니다.";
+    private string WarehouseMessage = "창고 탭에 들어오면 공동 창고 관리권을 자동으로 요청합니다.";
     private string ProductionMessage = "회사 창고의 원물을 사용해 완제품 생산을 시작할 수 있습니다.";
 
     private const int WarehouseRowsPerPage = 6;
@@ -26,6 +26,8 @@ internal sealed class CompanyMenu : IClickableMenu
     private static readonly Color ButtonAlt = new(112, 99, 70);
     private static readonly Color Disabled = new(160, 160, 150);
 
+    internal bool IsWarehouseTabOpen => SelectedTab == 2;
+
     internal CompanyMenu(ModEntry mod)
         : base(Game1.viewport.Width / 2 - 540, Game1.viewport.Height / 2 - 330, 1080, 660, true)
     {
@@ -35,12 +37,15 @@ internal sealed class CompanyMenu : IClickableMenu
         string[] names = { "대시보드", "생산", "창고", "계약", "거래처", "연구개발", "브랜드", "직원", "재무" };
         for (int i = 0; i < names.Length; i++)
             Tabs.Add((names[i], new Rectangle(xPositionOnScreen + 18, yPositionOnScreen + 104 + i * 50, 190, 40)));
+
+        behaviorBeforeCleanup = _ => Mod.Multiplayer.ReleaseWarehouseControl();
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
         if (upperRightCloseButton?.containsPoint(x, y) == true)
         {
+            Mod.Multiplayer.ReleaseWarehouseControl();
             exitThisMenu();
             return;
         }
@@ -49,7 +54,18 @@ internal sealed class CompanyMenu : IClickableMenu
         {
             if (!Tabs[i].Bounds.Contains(x, y))
                 continue;
+
+            int previous = SelectedTab;
+            if (previous == 2 && i != 2)
+                Mod.Multiplayer.ReleaseWarehouseControl();
+
             SelectedTab = i;
+            if (i == 2 && previous != 2)
+            {
+                WarehouseMessage = "공동 창고 관리권을 확인하고 있습니다.";
+                Mod.Multiplayer.RequestWarehouseControl();
+            }
+
             Game1.playSound("smallSelect");
             return;
         }
@@ -103,7 +119,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private void DrawSidebar(SpriteBatch b)
     {
         b.DrawString(Game1.dialogueFont, "농업회사", new Vector2(xPositionOnScreen + 25, yPositionOnScreen + 23), Color.White);
-        b.DrawString(Game1.smallFont, "MULTIPLAYER 0.3.1", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
+        b.DrawString(Game1.smallFont, "MULTIPLAYER 0.3.2", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
 
         for (int i = 0; i < Tabs.Count; i++)
         {
@@ -113,7 +129,7 @@ internal sealed class CompanyMenu : IClickableMenu
             b.DrawString(Game1.smallFont, tab.Name, new Vector2(tab.Bounds.X + 16, tab.Bounds.Y + 8), Color.White);
         }
 
-        string role = !Context.IsMultiplayer ? "싱글플레이" : Context.IsMainPlayer ? "HOST" : "FARMHAND";
+        string role = Context.IsMultiplayer ? "공동 경영 · 동등 권한" : "싱글플레이";
         b.DrawString(Game1.smallFont, role, new Vector2(xPositionOnScreen + 27, yPositionOnScreen + height - 74), new Color(215, 228, 210));
         b.DrawString(Game1.smallFont, "F7 회사 관리", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + height - 48), new Color(215, 228, 210));
     }
@@ -139,7 +155,7 @@ internal sealed class CompanyMenu : IClickableMenu
 
         int sectionY = cardY + 125;
         b.DrawString(Game1.dialogueFont, "작물 생산 현황", new Vector2(x, sectionY), Game1.textColor);
-        b.DrawString(Game1.smallFont, "수확한 원물은 창고에 입고한 뒤 생산라인의 재료로 사용할 수 있습니다.", new Vector2(x, sectionY + 39), Muted);
+        b.DrawString(Game1.smallFont, "모든 공동 경영자가 같은 회사 창고·생산라인·실적을 공유합니다.", new Vector2(x, sectionY + 39), Muted);
 
         int rowY = sectionY + 78;
         int rowW = (w - 36) / 4;
@@ -150,15 +166,13 @@ internal sealed class CompanyMenu : IClickableMenu
 
         string multiplayerStatus = !Context.IsMultiplayer
             ? "싱글플레이 · 로컬 회사 데이터"
-            : Context.IsMainPlayer
-                ? "멀티 호스트 · 회사 데이터 최종 권한"
-                : Mod.Multiplayer.IsSynchronized
-                    ? "멀티 게스트 · 호스트와 동기화 완료"
-                    : "멀티 게스트 · 호스트 동기화 중";
+            : Mod.Multiplayer.IsSynchronized
+                ? "멀티플레이 · 공동 경영 데이터 동기화 완료 · 전원 동등 권한"
+                : "멀티플레이 · 공동 경영 데이터 동기화 중";
 
         int noteY = rowY + 175;
         drawTextureBox(b, x, noteY, w, 72, Color.White);
-        b.DrawString(Game1.smallFont, "Agricultural Company 0.3.1 · Multiplayer Foundation", new Vector2(x + 18, noteY + 12), Accent);
+        b.DrawString(Game1.smallFont, "Agricultural Company 0.3.2 · Equal Partners", new Vector2(x + 18, noteY + 12), Accent);
         b.DrawString(Game1.smallFont, multiplayerStatus, new Vector2(x + 18, noteY + 40), Muted);
     }
 
@@ -171,7 +185,7 @@ internal sealed class CompanyMenu : IClickableMenu
         int w = width - 280;
 
         b.DrawString(Game1.dialogueFont, "생산 관리", new Vector2(x, y), Game1.textColor);
-        b.DrawString(Game1.smallFont, "멀티에서는 호스트가 원재료 차감·생산 큐·완제품을 최종 처리합니다.", new Vector2(x, y + 43), Muted);
+        b.DrawString(Game1.smallFont, "모든 공동 경영자가 동일하게 생산을 시작할 수 있으며 공용 재고에서 안전하게 처리됩니다.", new Vector2(x, y + 43), Muted);
 
         int queueCap = Mod.Production.GetQueueCapacity();
         DrawMiniInfo(b, new Rectangle(x, y + 72, 185, 55), "가동 라인", $"{Mod.State.ProductionQueue.Count} / {queueCap}");
@@ -205,7 +219,7 @@ internal sealed class CompanyMenu : IClickableMenu
             b.DrawString(Game1.smallFont, ProductionCore.FormatDuration(recipe.DurationMinutes), new Vector2(row.X + 392, row.Y + 21), Muted);
             b.DrawString(Game1.smallFont, finished.ToString("N0"), new Vector2(row.X + 487, row.Y + 21), Accent);
 
-            bool synced = !Context.IsMultiplayer || Context.IsMainPlayer || Mod.Multiplayer.IsSynchronized;
+            bool synced = !Context.IsMultiplayer || Mod.Multiplayer.IsSynchronized;
             bool canStart = synced && unlocked && ingredient >= recipe.InputQuantity && Mod.State.ProductionQueue.Count < queueCap;
             DrawSmallButton(b, ProductionButtonRect(i, 0), "1배치", canStart ? Button : Disabled);
             DrawSmallButton(b, ProductionButtonRect(i, 1), "최대", canStart ? Button : Disabled);
@@ -291,19 +305,23 @@ internal sealed class CompanyMenu : IClickableMenu
         int y = yPositionOnScreen + 26;
         int w = width - 280;
 
+        bool canManage = !Context.IsMultiplayer || Mod.Multiplayer.LocalHasWarehouseControl;
+        string controlStatus = Mod.Multiplayer.GetWarehouseControlStatus();
+
         b.DrawString(Game1.dialogueFont, "회사 창고", new Vector2(x, y), Game1.textColor);
-        b.DrawString(Game1.smallFont, "원물 농산물 보관 · 품질 등급 보존 · 멀티 호스트 승인", new Vector2(x, y + 44), Muted);
+        b.DrawString(Game1.smallFont, "공동 창고 · 먼저 들어온 공동 경영자가 관리하고 다른 사람은 열람합니다.", new Vector2(x, y + 42), Muted);
+        b.DrawString(Game1.smallFont, controlStatus, new Vector2(x, y + 66), canManage ? Accent : Color.DarkRed);
 
         int used = Mod.Company.GetWarehouseUsed();
         int capacity = Mod.Company.GetWarehouseCapacity();
         float ratio = capacity <= 0 ? 0f : Math.Clamp(used / (float)capacity, 0f, 1f);
-        Rectangle capacityBack = new(x, y + 75, w - 20, 18);
+        Rectangle capacityBack = new(x, y + 95, w - 20, 18);
         b.Draw(Game1.fadeToBlackRect, capacityBack, new Color(214, 211, 195));
         b.Draw(Game1.fadeToBlackRect, new Rectangle(capacityBack.X, capacityBack.Y, (int)(capacityBack.Width * ratio), capacityBack.Height), Accent);
         string capText = $"{used:N0} / {capacity:N0} 칸 사용";
-        b.DrawString(Game1.smallFont, capText, new Vector2(x, y + 99), ratio >= 0.9f ? Color.DarkRed : Muted);
+        b.DrawString(Game1.smallFont, capText, new Vector2(x, y + 119), ratio >= 0.9f ? Color.DarkRed : Muted);
 
-        int headerY = y + 135;
+        int headerY = y + 145;
         b.DrawString(Game1.smallFont, "품목", new Vector2(x + 12, headerY), Muted);
         b.DrawString(Game1.smallFont, "소지", new Vector2(x + 205, headerY), Muted);
         b.DrawString(Game1.smallFont, "창고", new Vector2(x + 275, headerY), Muted);
@@ -334,10 +352,10 @@ internal sealed class CompanyMenu : IClickableMenu
             b.DrawString(Game1.smallFont, player.ToString("N0"), new Vector2(rowRect.X + 210, rowRect.Y + 14), Muted);
             b.DrawString(Game1.smallFont, stock.ToString("N0"), new Vector2(rowRect.X + 280, rowRect.Y + 14), Accent);
 
-            DrawSmallButton(b, WarehouseButtonRect(row, 0), "+1", Button);
-            DrawSmallButton(b, WarehouseButtonRect(row, 1), "전부", Button);
-            DrawSmallButton(b, WarehouseButtonRect(row, 2), "-1", ButtonAlt);
-            DrawSmallButton(b, WarehouseButtonRect(row, 3), "전부", ButtonAlt);
+            DrawSmallButton(b, WarehouseButtonRect(row, 0), "+1", canManage ? Button : Disabled);
+            DrawSmallButton(b, WarehouseButtonRect(row, 1), "전부", canManage ? Button : Disabled);
+            DrawSmallButton(b, WarehouseButtonRect(row, 2), "-1", canManage ? ButtonAlt : Disabled);
+            DrawSmallButton(b, WarehouseButtonRect(row, 3), "전부", canManage ? ButtonAlt : Disabled);
         }
 
         int footerY = y + 528;
@@ -369,6 +387,13 @@ internal sealed class CompanyMenu : IClickableMenu
             return;
         }
 
+        if (Context.IsMultiplayer && !Mod.Multiplayer.LocalHasWarehouseControl)
+        {
+            WarehouseMessage = Mod.Multiplayer.GetWarehouseControlStatus();
+            Game1.playSound("cancel");
+            return;
+        }
+
         List<TrackedCropDefinition> crops = GetSortedCrops();
         int start = WarehousePage * WarehouseRowsPerPage;
         for (int row = 0; row < WarehouseRowsPerPage; row++)
@@ -392,10 +417,15 @@ internal sealed class CompanyMenu : IClickableMenu
                     _ => 0
                 };
 
-                if (moved == -1)
+                if (moved == -2)
+                {
+                    WarehouseMessage = Mod.Multiplayer.GetWarehouseControlStatus();
+                    Game1.playSound("cancel");
+                }
+                else if (moved == -1)
                 {
                     string verb = action <= 1 ? "입고" : "출고";
-                    WarehouseMessage = $"{crop.DisplayName} {verb} 요청을 호스트에 전송했습니다.";
+                    WarehouseMessage = $"{crop.DisplayName} {verb} 처리를 공동 회사 데이터에 요청했습니다.";
                     Game1.playSound("smallSelect");
                 }
                 else if (moved > 0)
@@ -420,7 +450,7 @@ internal sealed class CompanyMenu : IClickableMenu
     {
         int x = xPositionOnScreen + 245;
         int y = yPositionOnScreen + 26;
-        int headerY = y + 135;
+        int headerY = y + 145;
         int rowY = headerY + 30 + row * 58;
         int baseX = x + 355;
         int buttonW = 76;
