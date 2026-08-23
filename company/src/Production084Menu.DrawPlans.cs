@@ -26,7 +26,7 @@ internal sealed partial class Production084Menu : Company084MenuBase
             StatusDot(b, new Rectangle(r.Right - S(26), r.Y + S(25), S(13), S(13)), running ? GreenBright : Blue);
             Fill(b, PlanRemove(row), Red); Text(b, Game1.smallFont, "×", PlanRemove(row), Color.White, 0.55f, true);
         }
-        WoodButton(b, D(1006, 599, 349, 43), "+  계획 추가", false);
+        WoodButton(b, PlanAdd(), "+  계획 추가", false);
         Text(b, Game1.smallFont, $"빈 라인 자동 배정  ✓      {PlanPage + 1}/{Math.Max(1, (plans.Count + 4) / 5)}", D(1015, 643, 330, 18), Ink, 0.65f, true);
     }
 
@@ -120,4 +120,5 @@ internal sealed partial class Production084Menu : Company084MenuBase
     private Rectangle PlanUp(int row) => D(1284, 234 + row * 70, 34, 25);
     private Rectangle PlanDown(int row) => D(1284, 261 + row * 70, 34, 25);
     private Rectangle PlanRemove(int row) => D(1328, 270 + row * 70, 20, 20);
+    private Rectangle PlanAdd() => D(1006, 599, 349, 43);
 }
