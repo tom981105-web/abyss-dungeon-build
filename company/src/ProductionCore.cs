@@ -248,8 +248,10 @@ internal sealed class ProductionCore
         Mod.State.LifetimeFinishedGoods += quantity;
         Mod.Company.AddCompanyExperience(Math.Max(1, job.BatchCount) * 2);
 
-        Game1.addHUDMessage(new HUDMessage($"생산 완료: {recipe.DisplayName} {quantity:N0}개"));
+        string notice = $"생산 완료: {recipe.DisplayName} {quantity:N0}개";
+        Game1.addHUDMessage(new HUDMessage(notice));
         Game1.playSound("newArtifact");
+        Mod.Multiplayer.BroadcastNotice(notice);
     }
 
     private static string FinishedKey(string productKey, int quality) => $"{quality}:{productKey}";
