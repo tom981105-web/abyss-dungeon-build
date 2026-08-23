@@ -1,4 +1,3 @@
-using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -11,7 +10,8 @@ internal sealed class ProductIconRenderer
     private Texture2D? Atlas;
 
     private const int CellSize = 64;
-    private const string AtlasBase64 = "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";
+    private const int TemplateCount = 10;
+    private const string AtlasAssetPath = "assets/product_icon_templates.png";
 
     internal ProductIconRenderer(ModEntry mod)
     {
@@ -21,7 +21,7 @@ internal sealed class ProductIconRenderer
     internal void DrawRecipeIcon(SpriteBatch b, ProductionRecipeDefinition recipe, Rectangle bounds, float alpha = 1f)
     {
         Texture2D atlas = GetAtlas();
-        int index = GetTemplateIndex(recipe);
+        int index = Math.Clamp(GetTemplateIndex(recipe), 0, TemplateCount - 1);
         Rectangle source = new(index * CellSize, 0, CellSize, CellSize);
         b.Draw(atlas, bounds, source, Color.White * alpha);
 
@@ -47,10 +47,52 @@ internal sealed class ProductIconRenderer
     {
         if (Atlas is not null && !Atlas.IsDisposed)
             return Atlas;
-        byte[] bytes = Convert.FromBase64String(AtlasBase64);
-        using MemoryStream stream = new(bytes);
-        Atlas = Texture2D.FromStream(Game1.graphics.GraphicsDevice, stream);
-        return Atlas;
+
+        try
+        {
+            Atlas = Mod.Helper.ModContent.Load<Texture2D>(AtlasAssetPath);
+            if (Atlas.Width < CellSize * TemplateCount || Atlas.Height < CellSize)
+                throw new InvalidOperationException($"Product icon atlas has invalid dimensions {Atlas.Width}x{Atlas.Height}.");
+            return Atlas;
+        }
+        catch (Exception ex)
+        {
+            Mod.Monitor.Log($"Could not load {AtlasAssetPath}; using a safe generated fallback atlas instead. {ex.Message}", StardewModdingAPI.LogLevel.Warn);
+            Atlas = CreateFallbackAtlas();
+            return Atlas;
+        }
+    }
+
+    private static Texture2D CreateFallbackAtlas()
+    {
+        int width = CellSize * TemplateCount;
+        Texture2D texture = new(Game1.graphics.GraphicsDevice, width, CellSize);
+        Color[] pixels = new Color[width * CellSize];
+        Color[] fills =
+        {
+            new(202, 70, 48), new(221, 164, 58), new(166, 65, 43), new(208, 178, 106), new(102, 145, 72),
+            new(218, 127, 151), new(225, 151, 67), new(216, 166, 48), new(88, 136, 164), new(169, 116, 66)
+        };
+
+        for (int cell = 0; cell < TemplateCount; cell++)
+        {
+            Color fill = fills[cell];
+            int startX = cell * CellSize;
+            for (int y = 0; y < CellSize; y++)
+            {
+                for (int x = 0; x < CellSize; x++)
+                {
+                    bool border = x < 4 || y < 4 || x >= CellSize - 4 || y >= CellSize - 4;
+                    Color c = border ? new Color(91, 60, 34) : fill;
+                    if (!border && ((x + y + cell * 3) % 17 == 0))
+                        c = Color.Lerp(fill, Color.White, 0.25f);
+                    pixels[y * width + startX + x] = c;
+                }
+            }
+        }
+
+        texture.SetData(pixels);
+        return texture;
     }
 
     private int GetTemplateIndex(ProductionRecipeDefinition recipe)
@@ -108,6 +150,9 @@ internal sealed class ProductIconRenderer
             b.Draw(Game1.fadeToBlackRect, new Rectangle(badge.Right - 1, badge.Y, 1, badge.Height), new Color(94, 69, 42) * alpha);
             item.drawInMenu(b, new Vector2(badge.X + 2, badge.Y + 2), 0.8f, alpha, 0.95f, StackDrawType.Hide, Color.White, drawShadow: false);
         }
-        catch { }
+        catch
+        {
+            // A missing optional crop icon must never take down the company UI.
+        }
     }
 }
