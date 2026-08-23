@@ -12,7 +12,9 @@ public sealed class CompanySaveData
     public int Experience { get; set; }
     public int Reputation { get; set; }
     public int ContractsCompleted { get; set; }
+    public int ContractsFailed { get; set; }
     public int ActiveContracts { get; set; }
+    public long CompanyFunds { get; set; }
     public long LifetimeRevenue { get; set; }
     public long SeasonRevenue { get; set; }
     public string LastDayKey { get; set; } = "";
@@ -24,13 +26,17 @@ public sealed class CompanySaveData
     public long LifetimeDeposited { get; set; }
     public long LifetimeWithdrawn { get; set; }
 
-    // 0.3 production data. Kept inside the same save payload so 0.1/0.2 saves migrate automatically.
     public List<ProductionJob> ProductionQueue { get; set; } = new();
     public Dictionary<string, ProductStockEntry> FinishedGoods { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public long LifetimeProductionBatches { get; set; }
     public long LifetimeFinishedGoods { get; set; }
 
-    // 0.3.1 multiplayer revision used to reject stale snapshots on farmhands.
+    // 0.4 contracts. Defaults keep older saves forward-compatible.
+    public string ContractBoardDayKey { get; set; } = "";
+    public List<CompanyContract> AvailableContracts { get; set; } = new();
+    public List<CompanyContract> AcceptedContracts { get; set; } = new();
+
+    // Multiplayer snapshot revision.
     public long NetworkRevision { get; set; }
 }
 
@@ -77,4 +83,32 @@ public sealed class ProductStockEntry
     public string ProductKey { get; set; } = "";
     public int Quality { get; set; }
     public int Quantity { get; set; }
+}
+
+public sealed class ContractTemplateDefinition
+{
+    public string Key { get; set; } = "";
+    public string ClientName { get; set; } = "";
+    public string ProductKey { get; set; } = "";
+    public int BaseQuantity { get; set; } = 8;
+    public int BaseUnitReward { get; set; } = 120;
+    public int RequiredCompanyLevel { get; set; } = 1;
+    public int MinDeadlineDays { get; set; } = 3;
+    public int MaxDeadlineDays { get; set; } = 5;
+}
+
+public sealed class CompanyContract
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string TemplateKey { get; set; } = "";
+    public string ClientName { get; set; } = "";
+    public string ProductKey { get; set; } = "";
+    public int RequiredQuantity { get; set; }
+    public int DeliveredQuantity { get; set; }
+    public int MinimumQuality { get; set; }
+    public int RewardGold { get; set; }
+    public int ReputationReward { get; set; }
+    public int FailureReputationPenalty { get; set; } = 1;
+    public int CreatedDayNumber { get; set; }
+    public int DeadlineDayNumber { get; set; }
 }

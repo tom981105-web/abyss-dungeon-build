@@ -12,10 +12,13 @@ internal sealed class CompanyMenu : IClickableMenu
     private readonly List<(string Name, Rectangle Bounds)> Tabs = new();
     private int SelectedTab;
     private int WarehousePage;
+    private int ContractPage;
     private string WarehouseMessage = "창고 탭에 들어오면 공동 창고 관리권을 자동으로 요청합니다.";
     private string ProductionMessage = "회사 창고의 원물을 사용해 완제품 생산을 시작할 수 있습니다.";
+    private string ContractMessage = "오늘의 계약을 수락하거나 진행 중인 계약에 완제품을 납품할 수 있습니다.";
 
     private const int WarehouseRowsPerPage = 6;
+    private const int ContractRowsPerPage = 5;
 
     private static readonly Color Green = new(48, 78, 58);
     private static readonly Color Green2 = new(78, 118, 84);
@@ -34,6 +37,8 @@ internal sealed class CompanyMenu : IClickableMenu
         Mod = mod;
         Mod.Company.EnsureState();
         Mod.Production.EnsureState();
+        Mod.Contracts.EnsureState();
+
         string[] names = { "대시보드", "생산", "창고", "계약", "거래처", "연구개발", "브랜드", "직원", "재무" };
         for (int i = 0; i < names.Length; i++)
             Tabs.Add((names[i], new Rectangle(xPositionOnScreen + 18, yPositionOnScreen + 104 + i * 50, 190, 40)));
@@ -74,23 +79,29 @@ internal sealed class CompanyMenu : IClickableMenu
             HandleProductionClick(x, y);
         else if (SelectedTab == 2)
             HandleWarehouseClick(x, y);
+        else if (SelectedTab == 3)
+            HandleContractClick(x, y);
     }
 
     public override void receiveScrollWheelAction(int direction)
     {
-        if (SelectedTab != 2)
+        if (SelectedTab == 2)
+        {
+            int maxPage = GetWarehouseMaxPage();
+            if (direction < 0 && WarehousePage < maxPage)
+                WarehousePage++;
+            else if (direction > 0 && WarehousePage > 0)
+                WarehousePage--;
             return;
-
-        int maxPage = GetWarehouseMaxPage();
-        if (direction < 0 && WarehousePage < maxPage)
-        {
-            WarehousePage++;
-            Game1.playSound("shiny4");
         }
-        else if (direction > 0 && WarehousePage > 0)
+
+        if (SelectedTab == 3)
         {
-            WarehousePage--;
-            Game1.playSound("shiny4");
+            int maxPage = GetContractMaxPage();
+            if (direction < 0 && ContractPage < maxPage)
+                ContractPage++;
+            else if (direction > 0 && ContractPage > 0)
+                ContractPage--;
         }
     }
 
@@ -109,6 +120,8 @@ internal sealed class CompanyMenu : IClickableMenu
             DrawProduction(b);
         else if (SelectedTab == 2)
             DrawWarehouse(b);
+        else if (SelectedTab == 3)
+            DrawContracts(b);
         else
             DrawComingSoon(b, Tabs[SelectedTab].Name);
 
@@ -119,7 +132,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private void DrawSidebar(SpriteBatch b)
     {
         b.DrawString(Game1.dialogueFont, "농업회사", new Vector2(xPositionOnScreen + 25, yPositionOnScreen + 23), Color.White);
-        b.DrawString(Game1.smallFont, "MULTIPLAYER 0.3.2", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
+        b.DrawString(Game1.smallFont, "COMPANY 0.4", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
 
         for (int i = 0; i < Tabs.Count; i++)
         {
@@ -142,38 +155,39 @@ internal sealed class CompanyMenu : IClickableMenu
         int w = width - 285;
 
         b.DrawString(Game1.dialogueFont, c.CompanyName, new Vector2(x, y), Game1.textColor);
-        b.DrawString(Game1.smallFont, $"Lv.{c.Level} · {CompanyCore.GetStageName(c.Level)}", new Vector2(x, y + 47), Accent);
+        b.DrawString(Game1.smallFont, $"Lv.{c.Level} · {CompanyCore.GetStageName(c.Level)} · 평판 {c.Reputation:N0}", new Vector2(x, y + 47), Accent);
         DrawXp(b, x, y + 77, w - 35);
 
         int cardY = y + 120;
         int gap = 12;
         int cardW = (w - gap * 3) / 4;
-        DrawCard(b, x, cardY, cardW, "운영 자금", $"{Game1.player.Money:N0}G");
+        DrawCard(b, x, cardY, cardW, "회사 자금", $"{c.CompanyFunds:N0}G");
         DrawCard(b, x + (cardW + gap), cardY, cardW, "원물 재고", $"{Mod.Company.GetWarehouseUsed():N0}");
         DrawCard(b, x + (cardW + gap) * 2, cardY, cardW, "완제품", $"{Mod.Production.GetFinishedGoodsTotal():N0}");
-        DrawCard(b, x + (cardW + gap) * 3, cardY, cardW, "가동 라인", $"{c.ProductionQueue.Count}/{Mod.Production.GetQueueCapacity()}");
+        DrawCard(b, x + (cardW + gap) * 3, cardY, cardW, "진행 계약", $"{c.AcceptedContracts.Count}/{Mod.Contracts.GetActiveCapacity()}");
 
         int sectionY = cardY + 125;
-        b.DrawString(Game1.dialogueFont, "작물 생산 현황", new Vector2(x, sectionY), Game1.textColor);
-        b.DrawString(Game1.smallFont, "모든 공동 경영자가 같은 회사 창고·생산라인·실적을 공유합니다.", new Vector2(x, sectionY + 39), Muted);
+        b.DrawString(Game1.dialogueFont, "회사 운영 흐름", new Vector2(x, sectionY), Game1.textColor);
+        b.DrawString(Game1.smallFont, "농산물을 창고에 입고하고 생산라인에서 가공한 뒤 계약 납품으로 회사 매출을 만듭니다.", new Vector2(x, sectionY + 39), Muted);
 
         int rowY = sectionY + 78;
         int rowW = (w - 36) / 4;
-        DrawCropCard(b, x, rowY, rowW, "기본 작물", "Vanilla");
-        DrawCropCard(b, x + rowW + 12, rowY, rowW, "수박 계열", "Watermelon");
-        DrawCropCard(b, x + (rowW + 12) * 2, rowY, rowW, "참외 계열", "KoreanMelon");
-        DrawCropCard(b, x + (rowW + 12) * 3, rowY, rowW, "배추", "NapaCabbage");
+        DrawStatCard(b, x, rowY, rowW, "이번 계절 매출", $"{c.SeasonRevenue:N0}G");
+        DrawStatCard(b, x + rowW + 12, rowY, rowW, "누적 매출", $"{c.LifetimeRevenue:N0}G");
+        DrawStatCard(b, x + (rowW + 12) * 2, rowY, rowW, "완료 계약", $"{c.ContractsCompleted:N0}건");
+        DrawStatCard(b, x + (rowW + 12) * 3, rowY, rowW, "실패 계약", $"{c.ContractsFailed:N0}건");
 
-        string multiplayerStatus = !Context.IsMultiplayer
-            ? "싱글플레이 · 로컬 회사 데이터"
+        string status = !Context.IsMultiplayer
+            ? "싱글플레이 · 회사 데이터 저장 중"
             : Mod.Multiplayer.IsSynchronized
                 ? "멀티플레이 · 공동 경영 데이터 동기화 완료 · 전원 동등 권한"
                 : "멀티플레이 · 공동 경영 데이터 동기화 중";
 
-        int noteY = rowY + 175;
-        drawTextureBox(b, x, noteY, w, 72, Color.White);
-        b.DrawString(Game1.smallFont, "Agricultural Company 0.3.2 · Equal Partners", new Vector2(x + 18, noteY + 12), Accent);
-        b.DrawString(Game1.smallFont, multiplayerStatus, new Vector2(x + 18, noteY + 40), Muted);
+        int noteY = rowY + 145;
+        drawTextureBox(b, x, noteY, w, 82, Color.White);
+        b.DrawString(Game1.smallFont, "Agricultural Company 0.4 · Contract & Revenue Loop", new Vector2(x + 18, noteY + 14), Accent);
+        b.DrawString(Game1.smallFont, "농사 → 창고 → 생산 → 계약 → 납품 → 회사 자금", new Vector2(x + 18, noteY + 39), Game1.textColor);
+        b.DrawString(Game1.smallFont, status, new Vector2(x + 18, noteY + 60), Muted);
     }
 
     private void DrawProduction(SpriteBatch b)
@@ -318,16 +332,9 @@ internal sealed class CompanyMenu : IClickableMenu
         Rectangle capacityBack = new(x, y + 95, w - 20, 18);
         b.Draw(Game1.fadeToBlackRect, capacityBack, new Color(214, 211, 195));
         b.Draw(Game1.fadeToBlackRect, new Rectangle(capacityBack.X, capacityBack.Y, (int)(capacityBack.Width * ratio), capacityBack.Height), Accent);
-        string capText = $"{used:N0} / {capacity:N0} 칸 사용";
-        b.DrawString(Game1.smallFont, capText, new Vector2(x, y + 119), ratio >= 0.9f ? Color.DarkRed : Muted);
+        b.DrawString(Game1.smallFont, $"{used:N0} / {capacity:N0} 칸 사용", new Vector2(x, y + 119), ratio >= 0.9f ? Color.DarkRed : Muted);
 
         int headerY = y + 145;
-        b.DrawString(Game1.smallFont, "품목", new Vector2(x + 12, headerY), Muted);
-        b.DrawString(Game1.smallFont, "소지", new Vector2(x + 205, headerY), Muted);
-        b.DrawString(Game1.smallFont, "창고", new Vector2(x + 275, headerY), Muted);
-        b.DrawString(Game1.smallFont, "입고", new Vector2(x + 370, headerY), Muted);
-        b.DrawString(Game1.smallFont, "출고", new Vector2(x + 550, headerY), Muted);
-
         List<TrackedCropDefinition> crops = GetSortedCrops();
         int start = WarehousePage * WarehouseRowsPerPage;
         int rowY = headerY + 30;
@@ -341,7 +348,6 @@ internal sealed class CompanyMenu : IClickableMenu
             TrackedCropDefinition crop = crops[index];
             Rectangle rowRect = new(x, rowY + row * 58, w - 20, 50);
             b.Draw(Game1.fadeToBlackRect, rowRect, row % 2 == 0 ? Soft : new Color(246, 246, 239));
-
             int player = Mod.Company.GetPlayerQuantity(crop.ItemId);
             int stock = Mod.Company.GetWarehouseQuantity(crop.ItemId);
             string quality = GetQualitySummary(crop.ItemId);
@@ -349,8 +355,8 @@ internal sealed class CompanyMenu : IClickableMenu
             b.DrawString(Game1.smallFont, crop.DisplayName, new Vector2(rowRect.X + 12, rowRect.Y + 6), Game1.textColor);
             if (!string.IsNullOrEmpty(quality))
                 b.DrawString(Game1.smallFont, quality, new Vector2(rowRect.X + 12, rowRect.Y + 27), Muted);
-            b.DrawString(Game1.smallFont, player.ToString("N0"), new Vector2(rowRect.X + 210, rowRect.Y + 14), Muted);
-            b.DrawString(Game1.smallFont, stock.ToString("N0"), new Vector2(rowRect.X + 280, rowRect.Y + 14), Accent);
+            b.DrawString(Game1.smallFont, $"소지 {player:N0}", new Vector2(rowRect.X + 205, rowRect.Y + 14), Muted);
+            b.DrawString(Game1.smallFont, $"창고 {stock:N0}", new Vector2(rowRect.X + 285, rowRect.Y + 14), Accent);
 
             DrawSmallButton(b, WarehouseButtonRect(row, 0), "+1", canManage ? Button : Disabled);
             DrawSmallButton(b, WarehouseButtonRect(row, 1), "전부", canManage ? Button : Disabled);
@@ -364,12 +370,9 @@ internal sealed class CompanyMenu : IClickableMenu
         b.DrawString(Game1.smallFont, WarehouseMessage, new Vector2(messageBox.X + 15, messageBox.Y + 17), Muted);
 
         int maxPage = GetWarehouseMaxPage();
-        Rectangle prev = PrevPageRect();
-        Rectangle next = NextPageRect();
-        DrawSmallButton(b, prev, "< 이전", WarehousePage > 0 ? Button : Disabled);
-        DrawSmallButton(b, next, "다음 >", WarehousePage < maxPage ? Button : Disabled);
-        string page = $"{WarehousePage + 1} / {maxPage + 1}";
-        b.DrawString(Game1.smallFont, page, new Vector2(x + w - 165, footerY + 72), Muted);
+        DrawSmallButton(b, PrevPageRect(), "< 이전", WarehousePage > 0 ? Button : Disabled);
+        DrawSmallButton(b, NextPageRect(), "다음 >", WarehousePage < maxPage ? Button : Disabled);
+        b.DrawString(Game1.smallFont, $"{WarehousePage + 1} / {maxPage + 1}", new Vector2(x + w - 165, footerY + 72), Muted);
     }
 
     private void HandleWarehouseClick(int x, int y)
@@ -401,8 +404,8 @@ internal sealed class CompanyMenu : IClickableMenu
             int index = start + row;
             if (index >= crops.Count)
                 break;
-
             TrackedCropDefinition crop = crops[index];
+
             for (int action = 0; action < 4; action++)
             {
                 if (!WarehouseButtonRect(row, action).Contains(x, y))
@@ -418,40 +421,149 @@ internal sealed class CompanyMenu : IClickableMenu
                 };
 
                 if (moved == -2)
-                {
                     WarehouseMessage = Mod.Multiplayer.GetWarehouseControlStatus();
-                    Game1.playSound("cancel");
-                }
                 else if (moved == -1)
-                {
-                    string verb = action <= 1 ? "입고" : "출고";
-                    WarehouseMessage = $"{crop.DisplayName} {verb} 처리를 공동 회사 데이터에 요청했습니다.";
-                    Game1.playSound("smallSelect");
-                }
+                    WarehouseMessage = $"{crop.DisplayName} 처리를 공동 회사 데이터에 반영 중입니다.";
                 else if (moved > 0)
-                {
-                    string verb = action <= 1 ? "입고" : "출고";
-                    WarehouseMessage = $"{crop.DisplayName} {moved:N0}개 {verb} 완료.";
-                    Game1.playSound(action <= 1 ? "Ship" : "coin");
-                }
+                    WarehouseMessage = $"{crop.DisplayName} {moved:N0}개 {(action <= 1 ? "입고" : "출고")} 완료.";
                 else
-                {
-                    WarehouseMessage = action <= 1
-                        ? (Mod.Company.GetWarehouseUsed() >= Mod.Company.GetWarehouseCapacity() ? "창고가 가득 찼습니다." : $"소지품에 {crop.DisplayName}이(가) 없습니다.")
-                        : (Mod.Company.GetWarehouseQuantity(crop.ItemId) <= 0 ? $"창고에 {crop.DisplayName} 재고가 없습니다." : "인벤토리 공간이 부족합니다.");
-                    Game1.playSound("cancel");
-                }
+                    WarehouseMessage = action <= 1 ? $"{crop.DisplayName}을(를) 입고할 수 없습니다." : $"{crop.DisplayName}을(를) 출고할 수 없습니다.";
+
+                Game1.playSound(moved > 0 ? "Ship" : moved == -1 ? "smallSelect" : "cancel");
                 return;
             }
         }
     }
 
+    private void DrawContracts(SpriteBatch b)
+    {
+        Mod.Contracts.EnsureState();
+        int x = xPositionOnScreen + 245;
+        int y = yPositionOnScreen + 24;
+        int w = width - 280;
+        CompanySaveData c = Mod.State;
+
+        b.DrawString(Game1.dialogueFont, "계약 · 납품", new Vector2(x, y), Game1.textColor);
+        b.DrawString(Game1.smallFont, "완제품을 납품해 회사 자금과 평판을 올립니다. 모든 공동 경영자가 동일하게 처리할 수 있습니다.", new Vector2(x, y + 43), Muted);
+
+        int infoY = y + 72;
+        DrawMiniInfo(b, new Rectangle(x, infoY, 185, 55), "회사 자금", $"{c.CompanyFunds:N0}G");
+        DrawMiniInfo(b, new Rectangle(x + 196, infoY, 185, 55), "평판", c.Reputation.ToString("N0"));
+        DrawMiniInfo(b, new Rectangle(x + 392, infoY, 185, 55), "진행 계약", $"{c.AcceptedContracts.Count}/{Mod.Contracts.GetActiveCapacity()}");
+        DrawMiniInfo(b, new Rectangle(x + 588, infoY, w - 608, 55), "완료", c.ContractsCompleted.ToString("N0"));
+
+        List<(CompanyContract Contract, bool Active)> rows = GetContractRows();
+        int start = ContractPage * ContractRowsPerPage;
+        int listY = y + 143;
+
+        if (rows.Count == 0)
+        {
+            drawTextureBox(b, x, listY, w - 20, 250, Color.White);
+            b.DrawString(Game1.dialogueFont, "현재 표시할 계약이 없습니다.", new Vector2(x + 30, listY + 70), Muted);
+            b.DrawString(Game1.smallFont, "계약 게시판은 게임 날짜가 바뀔 때 새로 갱신됩니다.", new Vector2(x + 32, listY + 125), Muted);
+        }
+        else
+        {
+            for (int row = 0; row < ContractRowsPerPage; row++)
+            {
+                int index = start + row;
+                if (index >= rows.Count)
+                    break;
+
+                CompanyContract contract = rows[index].Contract;
+                bool active = rows[index].Active;
+                Rectangle rect = new(x, listY + row * 82, w - 20, 74);
+                b.Draw(Game1.fadeToBlackRect, rect, row % 2 == 0 ? Soft : new Color(246, 246, 239));
+
+                string product = Mod.Contracts.GetProductName(contract.ProductKey);
+                string state = active ? "진행" : "게시";
+                string quantity = active ? $"{contract.DeliveredQuantity}/{contract.RequiredQuantity}" : $"{contract.RequiredQuantity}개";
+                int qualifying = Mod.Contracts.GetQualifyingFinishedQuantity(contract.ProductKey, contract.MinimumQuality);
+                int days = Mod.Contracts.GetDaysRemaining(contract);
+
+                b.DrawString(Game1.smallFont, $"[{state}] {contract.ClientName} · {product}", new Vector2(rect.X + 10, rect.Y + 7), Game1.textColor);
+                b.DrawString(Game1.smallFont, $"수량 {quantity} · {ContractCore.QualityRequirementText(contract.MinimumQuality)} · 납기 {days}일", new Vector2(rect.X + 10, rect.Y + 33), Muted);
+                b.DrawString(Game1.smallFont, $"재고 {qualifying:N0} · 보상 {contract.RewardGold:N0}G · 평판 +{contract.ReputationReward}", new Vector2(rect.X + 335, rect.Y + 33), Accent);
+
+                bool synced = !Context.IsMultiplayer || Mod.Multiplayer.IsSynchronized;
+                bool canAction = synced && (active ? qualifying > 0 : c.AcceptedContracts.Count < Mod.Contracts.GetActiveCapacity());
+                DrawSmallButton(b, ContractButtonRect(row), active ? "납품" : "수락", canAction ? (active ? ButtonAlt : Button) : Disabled);
+            }
+        }
+
+        Rectangle msg = new(x, y + 558, w - 20, 44);
+        b.Draw(Game1.fadeToBlackRect, msg, Soft);
+        b.DrawString(Game1.smallFont, ContractMessage, new Vector2(msg.X + 12, msg.Y + 11), Muted);
+
+        int maxPage = GetContractMaxPage();
+        DrawSmallButton(b, ContractPrevRect(), "< 이전", ContractPage > 0 ? Button : Disabled);
+        DrawSmallButton(b, ContractNextRect(), "다음 >", ContractPage < maxPage ? Button : Disabled);
+        b.DrawString(Game1.smallFont, $"{ContractPage + 1} / {maxPage + 1}", new Vector2(x + w - 160, y + 617), Muted);
+    }
+
+    private void HandleContractClick(int x, int y)
+    {
+        if (ContractPrevRect().Contains(x, y) && ContractPage > 0)
+        {
+            ContractPage--;
+            Game1.playSound("shiny4");
+            return;
+        }
+        if (ContractNextRect().Contains(x, y) && ContractPage < GetContractMaxPage())
+        {
+            ContractPage++;
+            Game1.playSound("shiny4");
+            return;
+        }
+
+        List<(CompanyContract Contract, bool Active)> rows = GetContractRows();
+        int start = ContractPage * ContractRowsPerPage;
+        for (int row = 0; row < ContractRowsPerPage; row++)
+        {
+            int index = start + row;
+            if (index >= rows.Count || !ContractButtonRect(row).Contains(x, y))
+                continue;
+
+            CompanyContract contract = rows[index].Contract;
+            bool active = rows[index].Active;
+            bool ok = active
+                ? Mod.Contracts.TryDeliver(contract.Id, out string message)
+                : Mod.Contracts.TryAccept(contract.Id, out message);
+            ContractMessage = message;
+            Game1.playSound(ok ? "Ship" : "cancel");
+            return;
+        }
+    }
+
+    private List<(CompanyContract Contract, bool Active)> GetContractRows()
+    {
+        List<(CompanyContract Contract, bool Active)> result = new();
+        result.AddRange(Mod.State.AcceptedContracts
+            .OrderBy(p => p.DeadlineDayNumber)
+            .Select(p => (p, true)));
+        result.AddRange(Mod.State.AvailableContracts
+            .OrderBy(p => p.DeadlineDayNumber)
+            .Select(p => (p, false)));
+        return result;
+    }
+
+    private Rectangle ContractButtonRect(int row)
+        => new(xPositionOnScreen + width - 150, yPositionOnScreen + 24 + 143 + row * 82 + 17, 88, 38);
+
+    private Rectangle ContractPrevRect()
+        => new(xPositionOnScreen + width - 360, yPositionOnScreen + height - 45, 85, 32);
+
+    private Rectangle ContractNextRect()
+        => new(xPositionOnScreen + width - 265, yPositionOnScreen + height - 45, 85, 32);
+
+    private int GetContractMaxPage()
+        => Math.Max(0, (GetContractRows().Count - 1) / ContractRowsPerPage);
+
     private Rectangle WarehouseButtonRect(int row, int action)
     {
         int x = xPositionOnScreen + 245;
         int y = yPositionOnScreen + 26;
-        int headerY = y + 145;
-        int rowY = headerY + 30 + row * 58;
+        int rowY = y + 145 + 30 + row * 58;
         int baseX = x + 355;
         int buttonW = 76;
         int gap = 6;
@@ -468,10 +580,7 @@ internal sealed class CompanyMenu : IClickableMenu
         => Math.Max(0, (GetSortedCrops().Count - 1) / WarehouseRowsPerPage);
 
     private List<TrackedCropDefinition> GetSortedCrops()
-        => Mod.Crops
-            .OrderBy(p => FamilyOrder(p.Family))
-            .ThenBy(p => p.DisplayName, StringComparer.CurrentCulture)
-            .ToList();
+        => Mod.Crops.OrderBy(p => FamilyOrder(p.Family)).ThenBy(p => p.DisplayName, StringComparer.CurrentCulture).ToList();
 
     private static int FamilyOrder(string family) => family switch
     {
@@ -485,9 +594,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private string GetQualitySummary(string itemId)
     {
         IReadOnlyList<(int Quality, int Quantity)> values = Mod.Company.GetQualityBreakdown(itemId);
-        if (values.Count == 0)
-            return "";
-        return string.Join(" · ", values.Select(p => $"{CompanyCore.QualityName(p.Quality)} {p.Quantity:N0}"));
+        return values.Count == 0 ? "" : string.Join(" · ", values.Select(p => $"{CompanyCore.QualityName(p.Quality)} {p.Quantity:N0}"));
     }
 
     private void DrawXp(SpriteBatch b, int x, int y, int w)
@@ -509,22 +616,19 @@ internal sealed class CompanyMenu : IClickableMenu
         b.DrawString(Game1.dialogueFont, value, new Vector2(x + 13, y + 43), Game1.textColor);
     }
 
+    private static void DrawStatCard(SpriteBatch b, int x, int y, int w, string label, string value)
+    {
+        drawTextureBox(b, x, y, w, 120, Color.White);
+        b.DrawString(Game1.smallFont, label, new Vector2(x + 14, y + 20), Muted);
+        b.DrawString(Game1.dialogueFont, value, new Vector2(x + 14, y + 56), Game1.textColor);
+    }
+
     private static void DrawMiniInfo(SpriteBatch b, Rectangle rect, string label, string value)
     {
         drawTextureBox(b, rect.X, rect.Y, rect.Width, rect.Height, Color.White);
         b.DrawString(Game1.smallFont, label, new Vector2(rect.X + 10, rect.Y + 8), Muted);
         Vector2 valueSize = Game1.smallFont.MeasureString(value);
         b.DrawString(Game1.smallFont, value, new Vector2(rect.Right - valueSize.X - 10, rect.Y + 27), Accent);
-    }
-
-    private void DrawCropCard(SpriteBatch b, int x, int y, int w, string title, string family)
-    {
-        CompanySaveData c = Mod.State;
-        drawTextureBox(b, x, y, w, 150, Color.White);
-        b.DrawString(Game1.smallFont, title, new Vector2(x + 14, y + 18), Game1.textColor);
-        b.DrawString(Game1.smallFont, $"오늘 {Mod.Company.GetTotal(c.TodayHarvest, family):N0}", new Vector2(x + 14, y + 55), Muted);
-        b.DrawString(Game1.smallFont, $"계절 {Mod.Company.GetTotal(c.SeasonHarvest, family):N0}", new Vector2(x + 14, y + 84), Muted);
-        b.DrawString(Game1.smallFont, $"누적 {Mod.Company.GetTotal(c.LifetimeHarvest, family):N0}", new Vector2(x + 14, y + 113), Accent);
     }
 
     private static void DrawSmallButton(SpriteBatch b, Rectangle rect, string text, Color color)
@@ -541,8 +645,7 @@ internal sealed class CompanyMenu : IClickableMenu
         int w = width - 350;
         drawTextureBox(b, x, y, w, 300, Color.White);
         b.DrawString(Game1.dialogueFont, tab, new Vector2(x, y - 65), Game1.textColor);
-        string version = tab == "계약" ? "0.4" : "후속 업데이트";
         b.DrawString(Game1.dialogueFont, $"{tab} 시스템 준비 중", new Vector2(x + 40, y + 95), Accent);
-        b.DrawString(Game1.smallFont, $"{version}에서 실제 기능이 연결됩니다.", new Vector2(x + 42, y + 155), Muted);
+        b.DrawString(Game1.smallFont, "후속 업데이트에서 실제 회사 기능으로 연결됩니다.", new Vector2(x + 42, y + 155), Muted);
     }
 }

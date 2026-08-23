@@ -13,6 +13,7 @@ internal sealed class MultiplayerCore
     private const string MessageHarvestReport = "harvest-report";
     private const string MessageWarehouseRequest = "warehouse-request";
     private const string MessageProductionRequest = "production-request";
+    private const string MessageContractRequest = "contract-request";
     private const string MessageOperationResult = "operation-result";
     private const string MessageWarehouseLockRequest = "warehouse-lock-request";
     private const string MessageWarehouseLockRelease = "warehouse-lock-release";
@@ -47,20 +48,14 @@ internal sealed class MultiplayerCore
     internal void OnSaveLoaded()
     {
         IsSynchronized = Context.IsMainPlayer;
-        WarehouseLockOwnerId = 0;
-        WarehouseLockOwnerName = "";
-        WarehouseLockHeartbeatUtc = DateTime.MinValue;
-
+        ResetWarehouseLockLocal();
         if (!Context.IsMainPlayer)
             RequestSync();
     }
 
     internal void OnDayStarted()
     {
-        WarehouseLockOwnerId = 0;
-        WarehouseLockOwnerName = "";
-        WarehouseLockHeartbeatUtc = DateTime.MinValue;
-
+        ResetWarehouseLockLocal();
         if (Context.IsMainPlayer)
         {
             BroadcastState();
@@ -76,7 +71,6 @@ internal sealed class MultiplayerCore
     {
         if (!Context.IsMultiplayer || Context.IsMainPlayer)
             return;
-
         Mod.Helper.Multiplayer.SendMessage(new SyncRequestMessage(), MessageSyncRequest, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
@@ -93,7 +87,6 @@ internal sealed class MultiplayerCore
     {
         if (!Context.IsWorldReady || !Context.IsMainPlayer)
             return;
-
         Mod.Helper.Multiplayer.SendMessage(Mod.State, MessageStateSnapshot, modIDs: new[] { Mod.ModManifest.UniqueID }, playerIDs: new[] { playerId });
     }
 
@@ -101,11 +94,7 @@ internal sealed class MultiplayerCore
     {
         if (!Context.IsWorldReady || !Context.IsMainPlayer || !Context.IsMultiplayer || string.IsNullOrWhiteSpace(message))
             return;
-
-        Mod.Helper.Multiplayer.SendMessage(
-            new OperationResultMessage { Success = true, Message = message },
-            MessageOperationResult,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
+        Mod.Helper.Multiplayer.SendMessage(new OperationResultMessage { Success = true, Message = message }, MessageOperationResult, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     internal void ReportHarvest(string itemId, int amount)
@@ -120,32 +109,28 @@ internal sealed class MultiplayerCore
             return;
         }
 
-        Mod.Helper.Multiplayer.SendMessage(
-            new HarvestReportMessage { ItemId = itemId, Amount = amount },
-            MessageHarvestReport,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
+        Mod.Helper.Multiplayer.SendMessage(new HarvestReportMessage { ItemId = itemId, Amount = amount }, MessageHarvestReport, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     internal void RequestWarehouse(string itemId, int amount, bool deposit, bool all)
     {
         if (Context.IsMainPlayer)
             return;
-
-        Mod.Helper.Multiplayer.SendMessage(
-            new WarehouseRequestMessage { ItemId = itemId, Amount = amount, Deposit = deposit, All = all },
-            MessageWarehouseRequest,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
+        Mod.Helper.Multiplayer.SendMessage(new WarehouseRequestMessage { ItemId = itemId, Amount = amount, Deposit = deposit, All = all }, MessageWarehouseRequest, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     internal void RequestProduction(string recipeKey, int batches)
     {
         if (Context.IsMainPlayer)
             return;
+        Mod.Helper.Multiplayer.SendMessage(new ProductionRequestMessage { RecipeKey = recipeKey, Batches = Math.Max(1, batches) }, MessageProductionRequest, modIDs: new[] { Mod.ModManifest.UniqueID });
+    }
 
-        Mod.Helper.Multiplayer.SendMessage(
-            new ProductionRequestMessage { RecipeKey = recipeKey, Batches = Math.Max(1, batches) },
-            MessageProductionRequest,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
+    internal void RequestContract(string contractId, string action)
+    {
+        if (Context.IsMainPlayer)
+            return;
+        Mod.Helper.Multiplayer.SendMessage(new ContractRequestMessage { ContractId = contractId, Action = action }, MessageContractRequest, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     internal void RequestWarehouseControl()
@@ -162,14 +147,11 @@ internal sealed class MultiplayerCore
 
         if (Context.IsMainPlayer)
         {
-            TryAcquireWarehouseLock(Game1.player.UniqueMultiplayerID, Game1.player.Name, sendResult: false);
+            TryAcquireWarehouseLock(Game1.player.UniqueMultiplayerID, Game1.player.Name, false);
             return;
         }
 
-        Mod.Helper.Multiplayer.SendMessage(
-            new WarehouseLockRequestMessage { PlayerName = Game1.player.Name },
-            MessageWarehouseLockRequest,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
+        Mod.Helper.Multiplayer.SendMessage(new WarehouseLockRequestMessage { PlayerName = Game1.player.Name }, MessageWarehouseLockRequest, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     internal void ReleaseWarehouseControl()
@@ -185,27 +167,7 @@ internal sealed class MultiplayerCore
             return;
         }
 
-        Mod.Helper.Multiplayer.SendMessage(
-            new WarehouseLockReleaseMessage(),
-            MessageWarehouseLockRelease,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
-    }
-
-    private void TouchWarehouseControl()
-    {
-        if (!Context.IsMultiplayer || !Context.IsWorldReady || !LocalHasWarehouseControl)
-            return;
-
-        if (Context.IsMainPlayer)
-        {
-            WarehouseLockHeartbeatUtc = DateTime.UtcNow;
-            return;
-        }
-
-        Mod.Helper.Multiplayer.SendMessage(
-            new WarehouseLockHeartbeatMessage(),
-            MessageWarehouseLockHeartbeat,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
+        Mod.Helper.Multiplayer.SendMessage(new WarehouseLockReleaseMessage(), MessageWarehouseLockRelease, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     internal string GetWarehouseControlStatus()
@@ -219,21 +181,31 @@ internal sealed class MultiplayerCore
         return $"{WarehouseLockOwnerName}님이 창고 관리 중 · 열람 전용";
     }
 
+    private void TouchWarehouseControl()
+    {
+        if (!Context.IsMultiplayer || !Context.IsWorldReady || !LocalHasWarehouseControl)
+            return;
+
+        if (Context.IsMainPlayer)
+        {
+            WarehouseLockHeartbeatUtc = DateTime.UtcNow;
+            return;
+        }
+
+        Mod.Helper.Multiplayer.SendMessage(new WarehouseLockHeartbeatMessage(), MessageWarehouseLockHeartbeat, modIDs: new[] { Mod.ModManifest.UniqueID });
+    }
+
     private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
     {
         if (!Context.IsMainPlayer || !Context.IsWorldReady)
             return;
-
         SendStateTo(e.Peer.PlayerID);
         SendWarehouseLockStateTo(e.Peer.PlayerID);
     }
 
     private void OnPeerDisconnected(object? sender, PeerDisconnectedEventArgs e)
     {
-        if (!Context.IsMainPlayer)
-            return;
-
-        if (WarehouseLockOwnerId == e.Peer.PlayerID)
+        if (Context.IsMainPlayer && WarehouseLockOwnerId == e.Peer.PlayerID)
             ClearWarehouseLockAndBroadcast();
     }
 
@@ -247,7 +219,6 @@ internal sealed class MultiplayerCore
 
         if (!Context.IsMainPlayer || WarehouseLockOwnerId == 0 || WarehouseLockHeartbeatUtc == DateTime.MinValue)
             return;
-
         if ((DateTime.UtcNow - WarehouseLockHeartbeatUtc).TotalSeconds > 20)
             ClearWarehouseLockAndBroadcast();
     }
@@ -271,14 +242,12 @@ internal sealed class MultiplayerCore
         {
             if (Context.IsMainPlayer)
                 return;
-
             if (Game1.MasterPlayer is not null && e.FromPlayerID != Game1.MasterPlayer.UniqueMultiplayerID)
                 return;
 
             CompanySaveData incoming = e.ReadAs<CompanySaveData>();
             if (incoming.NetworkRevision < Mod.State.NetworkRevision)
                 return;
-
             Mod.ApplyNetworkState(incoming);
             IsSynchronized = true;
             return;
@@ -288,7 +257,6 @@ internal sealed class MultiplayerCore
         {
             if (!Context.IsMainPlayer)
                 return;
-
             HarvestReportMessage request = e.ReadAs<HarvestReportMessage>();
             Mod.Company.ApplyHarvestReport(request.ItemId, Math.Clamp(request.Amount, 0, 999));
             BroadcastState();
@@ -299,11 +267,9 @@ internal sealed class MultiplayerCore
         {
             if (!Context.IsMainPlayer)
                 return;
-
             WarehouseLockRequestMessage request = e.ReadAs<WarehouseLockRequestMessage>();
             Farmer? farmer = Game1.getFarmer(e.FromPlayerID);
-            string name = farmer?.Name ?? request.PlayerName ?? "공동 경영자";
-            TryAcquireWarehouseLock(e.FromPlayerID, name, sendResult: true);
+            TryAcquireWarehouseLock(e.FromPlayerID, farmer?.Name ?? request.PlayerName ?? "공동 경영자", true);
             return;
         }
 
@@ -325,10 +291,8 @@ internal sealed class MultiplayerCore
         {
             if (Context.IsMainPlayer)
                 return;
-
             if (Game1.MasterPlayer is not null && e.FromPlayerID != Game1.MasterPlayer.UniqueMultiplayerID)
                 return;
-
             WarehouseLockStateMessage state = e.ReadAs<WarehouseLockStateMessage>();
             WarehouseLockOwnerId = state.OwnerId;
             WarehouseLockOwnerName = state.OwnerName ?? "";
@@ -337,10 +301,8 @@ internal sealed class MultiplayerCore
 
         if (e.Type == MessageWarehouseRequest)
         {
-            if (!Context.IsMainPlayer)
-                return;
-
-            HandleWarehouseRequest(e.FromPlayerID, e.ReadAs<WarehouseRequestMessage>());
+            if (Context.IsMainPlayer)
+                HandleWarehouseRequest(e.FromPlayerID, e.ReadAs<WarehouseRequestMessage>());
             return;
         }
 
@@ -348,9 +310,30 @@ internal sealed class MultiplayerCore
         {
             if (!Context.IsMainPlayer)
                 return;
-
             ProductionRequestMessage request = e.ReadAs<ProductionRequestMessage>();
             bool ok = Mod.Production.TryStartAuthoritative(request.RecipeKey, Math.Clamp(request.Batches, 1, 999), out string message);
+            SendOperationResult(e.FromPlayerID, ok, message);
+            if (ok)
+                BroadcastState();
+            return;
+        }
+
+        if (e.Type == MessageContractRequest)
+        {
+            if (!Context.IsMainPlayer)
+                return;
+            ContractRequestMessage request = e.ReadAs<ContractRequestMessage>();
+            bool ok;
+            string message;
+            if (string.Equals(request.Action, "accept", StringComparison.OrdinalIgnoreCase))
+                ok = Mod.Contracts.TryAcceptAuthoritative(request.ContractId, out message);
+            else if (string.Equals(request.Action, "deliver", StringComparison.OrdinalIgnoreCase))
+                ok = Mod.Contracts.TryDeliverAuthoritative(request.ContractId, out message);
+            else
+            {
+                ok = false;
+                message = "알 수 없는 계약 작업입니다.";
+            }
             SendOperationResult(e.FromPlayerID, ok, message);
             if (ok)
                 BroadcastState();
@@ -361,11 +344,8 @@ internal sealed class MultiplayerCore
         {
             if (Game1.MasterPlayer is not null && e.FromPlayerID != Game1.MasterPlayer.UniqueMultiplayerID)
                 return;
-
             OperationResultMessage result = e.ReadAs<OperationResultMessage>();
-            Game1.addHUDMessage(result.Success
-                ? new HUDMessage(result.Message)
-                : new HUDMessage(result.Message, HUDMessage.error_type));
+            Game1.addHUDMessage(result.Success ? new HUDMessage(result.Message) : new HUDMessage(result.Message, HUDMessage.error_type));
         }
     }
 
@@ -394,15 +374,12 @@ internal sealed class MultiplayerCore
     {
         if (WarehouseLockOwnerId != playerId)
         {
-            SendOperationResult(playerId, false, WarehouseLockOwnerId == 0
-                ? "창고 관리권을 먼저 받아야 합니다."
-                : $"{WarehouseLockOwnerName}님이 창고를 관리 중입니다.");
+            SendOperationResult(playerId, false, WarehouseLockOwnerId == 0 ? "창고 관리권을 먼저 받아야 합니다." : $"{WarehouseLockOwnerName}님이 창고를 관리 중입니다.");
             SendWarehouseLockStateTo(playerId);
             return;
         }
 
         WarehouseLockHeartbeatUtc = DateTime.UtcNow;
-
         Farmer? player = Game1.getFarmer(playerId);
         if (player is null)
         {
@@ -418,17 +395,21 @@ internal sealed class MultiplayerCore
         bool ok = moved > 0;
         string cropName = Mod.Company.FindCrop(request.ItemId)?.DisplayName ?? "품목";
         string verb = request.Deposit ? "입고" : "출고";
-        string message = ok ? $"{cropName} {moved:N0}개 {verb} 완료." : $"{cropName} {verb} 요청을 처리하지 못했습니다.";
-        SendOperationResult(playerId, ok, message);
+        SendOperationResult(playerId, ok, ok ? $"{cropName} {moved:N0}개 {verb} 완료." : $"{cropName} {verb} 요청을 처리하지 못했습니다.");
         if (ok)
             BroadcastState();
     }
 
-    private void ClearWarehouseLockAndBroadcast()
+    private void ResetWarehouseLockLocal()
     {
         WarehouseLockOwnerId = 0;
         WarehouseLockOwnerName = "";
         WarehouseLockHeartbeatUtc = DateTime.MinValue;
+    }
+
+    private void ClearWarehouseLockAndBroadcast()
+    {
+        ResetWarehouseLockLocal();
         BroadcastWarehouseLockState();
     }
 
@@ -436,32 +417,19 @@ internal sealed class MultiplayerCore
     {
         if (!Context.IsMainPlayer || !Context.IsWorldReady || !Context.IsMultiplayer)
             return;
-
-        Mod.Helper.Multiplayer.SendMessage(
-            new WarehouseLockStateMessage { OwnerId = WarehouseLockOwnerId, OwnerName = WarehouseLockOwnerName },
-            MessageWarehouseLockState,
-            modIDs: new[] { Mod.ModManifest.UniqueID });
+        Mod.Helper.Multiplayer.SendMessage(new WarehouseLockStateMessage { OwnerId = WarehouseLockOwnerId, OwnerName = WarehouseLockOwnerName }, MessageWarehouseLockState, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     private void SendWarehouseLockStateTo(long playerId)
     {
         if (!Context.IsMainPlayer || !Context.IsWorldReady)
             return;
-
-        Mod.Helper.Multiplayer.SendMessage(
-            new WarehouseLockStateMessage { OwnerId = WarehouseLockOwnerId, OwnerName = WarehouseLockOwnerName },
-            MessageWarehouseLockState,
-            modIDs: new[] { Mod.ModManifest.UniqueID },
-            playerIDs: new[] { playerId });
+        Mod.Helper.Multiplayer.SendMessage(new WarehouseLockStateMessage { OwnerId = WarehouseLockOwnerId, OwnerName = WarehouseLockOwnerName }, MessageWarehouseLockState, modIDs: new[] { Mod.ModManifest.UniqueID }, playerIDs: new[] { playerId });
     }
 
     private void SendOperationResult(long playerId, bool success, string message)
     {
-        Mod.Helper.Multiplayer.SendMessage(
-            new OperationResultMessage { Success = success, Message = message },
-            MessageOperationResult,
-            modIDs: new[] { Mod.ModManifest.UniqueID },
-            playerIDs: new[] { playerId });
+        Mod.Helper.Multiplayer.SendMessage(new OperationResultMessage { Success = success, Message = message }, MessageOperationResult, modIDs: new[] { Mod.ModManifest.UniqueID }, playerIDs: new[] { playerId });
     }
 }
 
@@ -487,10 +455,10 @@ public sealed class ProductionRequestMessage
     public int Batches { get; set; } = 1;
 }
 
-public sealed class OperationResultMessage
+public sealed class ContractRequestMessage
 {
-    public bool Success { get; set; }
-    public string Message { get; set; } = "";
+    public string ContractId { get; set; } = "";
+    public string Action { get; set; } = "";
 }
 
 public sealed class WarehouseLockRequestMessage
@@ -505,4 +473,10 @@ public sealed class WarehouseLockStateMessage
 {
     public long OwnerId { get; set; }
     public string OwnerName { get; set; } = "";
+}
+
+public sealed class OperationResultMessage
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = "";
 }

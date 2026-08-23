@@ -1,3 +1,25 @@
 # Agricultural Company
 
-Standalone SMAPI company-management mod. Developed separately from Crop Genetics.
+Crop Genetics와 독립적으로 개발되는 Stardew Valley SMAPI 농업회사 경영 모드입니다.
+
+## v0.4.0 핵심 흐름
+농사 → 회사 창고 → 생산라인 → 완제품 → 계약 → 납품 → 회사 자금
+
+## 현재 기능
+- F7 회사 관리 UI
+- 회사 레벨 / 경험치 / 평판
+- 품질 보존 회사 창고
+- 시간 기반 생산 큐와 완제품 재고
+- 매일 갱신되는 계약 게시판
+- 계약 수락 / 부분 납품 / 품질 조건 / 납기
+- 개인 골드와 분리된 회사 운영자금
+- 계약 완료/실패, 계절 및 누적 매출
+- 멀티플레이 공동 경영자 전원 동등 권한
+- 창고는 선착순 1인 관리 + 나머지 열람 전용
+- 생산/계약은 전원 동일 사용 가능하며 공용 상태에서 충돌 방지
+
+## 설치
+`Agricultural Company` 폴더를 Stardew Valley의 `Mods` 폴더에 넣습니다.
+멀티플레이에서는 모든 참가자가 같은 버전의 Agricultural Company를 설치하는 것을 권장합니다.
+
+Crop Genetics는 필수 의존성이 아닙니다. 함께 설치하면 수박/참외/배추 계열 생산과 해당 완제품 계약을 사용할 수 있습니다.

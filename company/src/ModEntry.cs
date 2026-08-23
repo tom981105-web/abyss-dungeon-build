@@ -11,8 +11,10 @@ public sealed class ModEntry : Mod
     internal CompanySaveData State { get; private set; } = new();
     internal List<TrackedCropDefinition> Crops { get; private set; } = new();
     internal List<ProductionRecipeDefinition> Recipes { get; private set; } = new();
+    internal List<ContractTemplateDefinition> ContractTemplates { get; private set; } = new();
     internal CompanyCore Company { get; private set; } = null!;
     internal ProductionCore Production { get; private set; } = null!;
+    internal ContractCore Contracts { get; private set; } = null!;
     internal MultiplayerCore Multiplayer { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
@@ -20,9 +22,11 @@ public sealed class ModEntry : Mod
         Config = helper.ReadConfig<ModConfig>();
         Crops = helper.Data.ReadJsonFile<List<TrackedCropDefinition>>("data/tracked_crops.json") ?? new();
         Recipes = helper.Data.ReadJsonFile<List<ProductionRecipeDefinition>>("data/production_recipes.json") ?? new();
+        ContractTemplates = helper.Data.ReadJsonFile<List<ContractTemplateDefinition>>("data/contract_templates.json") ?? new();
 
         Company = new CompanyCore(this);
         Production = new ProductionCore(this);
+        Contracts = new ContractCore(this);
         Multiplayer = new MultiplayerCore(this);
         Company.Initialize(helper);
         Production.Initialize();
@@ -33,7 +37,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.3.2 loaded. Equal-partner multiplayer + shared warehouse lock enabled. {Recipes.Count} production recipes available. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.4 loaded. Contracts + company funds + equal-partner multiplayer enabled. {Recipes.Count} recipes / {ContractTemplates.Count} contract templates. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -44,7 +48,9 @@ public sealed class ModEntry : Mod
 
         Company.EnsureState();
         Production.EnsureState();
+        Contracts.EnsureState();
         Multiplayer.OnSaveLoaded();
+        Contracts.OnDayStarted();
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
@@ -60,6 +66,8 @@ public sealed class ModEntry : Mod
 
         Company.EnsureState();
         Production.EnsureState();
+        Contracts.EnsureState();
+        Contracts.OnDayStarted();
         Multiplayer.OnDayStarted();
     }
 
@@ -73,5 +81,6 @@ public sealed class ModEntry : Mod
         State = state ?? new CompanySaveData();
         Company.EnsureState();
         Production.EnsureState();
+        Contracts.EnsureState();
     }
 }
