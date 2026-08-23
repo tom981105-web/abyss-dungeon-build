@@ -35,7 +35,7 @@ jobs:
           p = Path('src/ContentBridge.cs')
           s = p.read_text(encoding='utf-8')
           old = '''        if (targetField is null || targetField.Count == 0)\n        {\n            ApplyDictionaryEntries(rootData, entries);\n            return;\n        }'''
-          new = '''        if (targetField is null || targetField.Count == 0)\n        {\n            if (rootData is IDictionary)\n            {\n                ApplyDictionaryEntries(rootData, entries);\n                return;\n            }\n\n            if (rootData is IList list)\n            {\n                ApplyListEntries(list, entries);\n                return;\n            }\n\n            throw new InvalidOperationException($"Unsupported root data type {rootData.GetType().FullName}.");\n        }'''
+          new = '''        if (targetField is null || targetField.Count == 0)\n        {\n            if (rootData is IDictionary)\n            {\n                ApplyDictionaryEntries(rootData, entries);\n                return;\n            }\n\n            if (rootData is IList rootList)\n            {\n                ApplyListEntries(rootList, entries);\n                return;\n            }\n\n            throw new InvalidOperationException($"Unsupported root data type {rootData.GetType().FullName}.");\n        }'''
           if old not in s:
               raise SystemExit('Expected ContentBridge root-data block was not found.')
           p.write_text(s.replace(old, new), encoding='utf-8')
