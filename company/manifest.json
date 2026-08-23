@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.8.4",
-  "Description": "Production UI visual upgrade: rebuilds production management around a larger wood-and-cream Stardew-inspired layout, richer machine/process icons, clearer cards and spacing, redesigned production plans and inventory panels, and a card-grid product catalog with detailed recipe analysis. Keeps stable icon assets, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
+  "Version": "0.8.5",
+  "Description": "Production UI visual-fidelity release: keeps the 0.8.4 management layout and overlays authored pixel-art machinery, process, product, timber and parchment assets for a richer farm-company look. Replaces mixed-language catalog titling, preserves safe visual fallbacks if external assets are missing, and keeps vanilla-crop production, optional Crop Genetics integration, quality/yield, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
