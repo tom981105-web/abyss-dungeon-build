@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.8.7",
-  "Description": "Art Refinement Pass: adds a high-resolution 128px transparent pixel-art atlas for larger, more detailed production machinery, clearer process sprites, standalone product icons without duplicate crop badges, larger catalog artwork, and empty-stock slot styling while preserving Production 2.x, vanilla crops, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
+  "Version": "0.9.0",
+  "Description": "Full Visual Rebuild: replaces the layered 0.8.x production UI with standalone textured Production090Menu and ProductCatalog090Menu screens, large high-resolution machinery/process/product art, production plans, stock slots, quality/yield details, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
