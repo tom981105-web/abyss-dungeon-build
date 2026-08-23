@@ -1,0 +1,15 @@
+Agricultural Company v0.3.1 - Multiplayer Foundation
+
+- Added host-authoritative multiplayer company state.
+- Farmhands request company state from the host on save load/day start.
+- Host broadcasts shared company snapshots with a revision number.
+- Company level, XP, harvest totals, warehouse, production queue, and finished goods are synchronized.
+- Warehouse deposit/withdraw requests from farmhands are validated and executed by the host against the requesting farmer inventory.
+- Production start requests from farmhands are validated and executed by the host.
+- Only the host advances timed production queues.
+- Production completion notices are broadcast to farmhands.
+- Dashboard shows single-player / host / farmhand synchronization status.
+- Crop Genetics remains optional and independent.
+- Existing v0.1-v0.3 company save data migrates automatically.
+
+Planned next: v0.4 delivery contracts on the same host-authoritative multiplayer foundation.
