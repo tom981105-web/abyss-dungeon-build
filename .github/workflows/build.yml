@@ -1,0 +1,43 @@
+name: Build Watermelon Genetics
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 6
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Add Stardew Valley and SMAPI reference assemblies
+        uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
+
+      - name: Build DLL
+        shell: bash
+        run: |
+          GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
+          dotnet build src/WatermelonGenetics.csproj -c Release /p:GamePath="$GAME_PATH"
+
+      - name: Verify DLL
+        shell: bash
+        run: |
+          test -f src/bin/Release/net6.0/WatermelonGenetics.dll
+          ls -lh src/bin/Release/net6.0/WatermelonGenetics.dll
+
+      - name: Upload DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: WatermelonGenetics-dll
+          path: src/bin/Release/net6.0/WatermelonGenetics.dll
+          if-no-files-found: error
