@@ -1,39 +1,278 @@
 [
-  {"ItemId":"(O)24","Family":"Vanilla","DisplayName":"파스닙","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)188","Family":"Vanilla","DisplayName":"완두콩","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)190","Family":"Vanilla","DisplayName":"콜리플라워","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)192","Family":"Vanilla","DisplayName":"감자","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)248","Family":"Vanilla","DisplayName":"마늘","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)250","Family":"Vanilla","DisplayName":"케일","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)252","Family":"Vanilla","DisplayName":"대황","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)254","Family":"Vanilla","DisplayName":"멜론","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)256","Family":"Vanilla","DisplayName":"토마토","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)258","Family":"Vanilla","DisplayName":"블루베리","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)260","Family":"Vanilla","DisplayName":"매운 고추","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)262","Family":"Vanilla","DisplayName":"밀","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)264","Family":"Vanilla","DisplayName":"무","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)266","Family":"Vanilla","DisplayName":"적양배추","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)268","Family":"Vanilla","DisplayName":"스타프루트","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)270","Family":"Vanilla","DisplayName":"옥수수","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)272","Family":"Vanilla","DisplayName":"가지","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)274","Family":"Vanilla","DisplayName":"아티초크","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)276","Family":"Vanilla","DisplayName":"호박","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)278","Family":"Vanilla","DisplayName":"청경채","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)280","Family":"Vanilla","DisplayName":"참마","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)282","Family":"Vanilla","DisplayName":"크랜베리","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)284","Family":"Vanilla","DisplayName":"비트","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)300","Family":"Vanilla","DisplayName":"아마란스","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)304","Family":"Vanilla","DisplayName":"홉","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)400","Family":"Vanilla","DisplayName":"딸기","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)433","Family":"Vanilla","DisplayName":"커피콩","FamilyDisplayName":"기본 작물"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_Watermelon","Family":"Watermelon","DisplayName":"수박","FamilyDisplayName":"수박 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_HoneyWatermelon","Family":"Watermelon","DisplayName":"꿀수박","FamilyDisplayName":"수박 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_MiniWatermelon","Family":"Watermelon","DisplayName":"미니수박","FamilyDisplayName":"수박 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_GoldenWatermelon","Family":"Watermelon","DisplayName":"황금수박","FamilyDisplayName":"수박 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_StarlightWatermelon","Family":"Watermelon","DisplayName":"별빛수박","FamilyDisplayName":"수박 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_KoreanMelon","Family":"KoreanMelon","DisplayName":"참외","FamilyDisplayName":"참외 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_WhiteChamoe","Family":"KoreanMelon","DisplayName":"백참외","FamilyDisplayName":"참외 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_GoldenChamoe","Family":"KoreanMelon","DisplayName":"황금참외","FamilyDisplayName":"참외 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_MiniChamoe","Family":"KoreanMelon","DisplayName":"미니참외","FamilyDisplayName":"참외 계열"},
-  {"ItemId":"(O)Saebyeol.WatermelonCrop_NapaCabbage","Family":"NapaCabbage","DisplayName":"배추","FamilyDisplayName":"배추"}
+  {
+    "ItemId": "(O)597",
+    "Family": "VanillaFlower",
+    "DisplayName": "푸른 재즈",
+    "FamilyDisplayName": "기본 꽃 작물"
+  },
+  {
+    "ItemId": "(O)Carrot",
+    "Family": "VanillaVegetable",
+    "DisplayName": "당근",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)190",
+    "Family": "VanillaVegetable",
+    "DisplayName": "콜리플라워",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)433",
+    "Family": "VanillaBeverage",
+    "DisplayName": "커피콩",
+    "FamilyDisplayName": "기본 음료 작물"
+  },
+  {
+    "ItemId": "(O)248",
+    "Family": "VanillaVegetable",
+    "DisplayName": "마늘",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)188",
+    "Family": "VanillaVegetable",
+    "DisplayName": "완두콩",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)250",
+    "Family": "VanillaVegetable",
+    "DisplayName": "케일",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)24",
+    "Family": "VanillaVegetable",
+    "DisplayName": "파스닙",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)192",
+    "Family": "VanillaVegetable",
+    "DisplayName": "감자",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)252",
+    "Family": "VanillaFruit",
+    "DisplayName": "대황",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)400",
+    "Family": "VanillaFruit",
+    "DisplayName": "딸기",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)591",
+    "Family": "VanillaFlower",
+    "DisplayName": "튤립",
+    "FamilyDisplayName": "기본 꽃 작물"
+  },
+  {
+    "ItemId": "(O)271",
+    "Family": "VanillaGrain",
+    "DisplayName": "가공되지 않은 쌀",
+    "FamilyDisplayName": "기본 곡물 작물"
+  },
+  {
+    "ItemId": "(O)258",
+    "Family": "VanillaFruit",
+    "DisplayName": "블루베리",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)270",
+    "Family": "VanillaGrain",
+    "DisplayName": "옥수수",
+    "FamilyDisplayName": "기본 곡물 작물"
+  },
+  {
+    "ItemId": "(O)304",
+    "Family": "VanillaBeverage",
+    "DisplayName": "홉",
+    "FamilyDisplayName": "기본 음료 작물"
+  },
+  {
+    "ItemId": "(O)260",
+    "Family": "VanillaVegetable",
+    "DisplayName": "매운 고추",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)254",
+    "Family": "VanillaFruit",
+    "DisplayName": "멜론",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)376",
+    "Family": "VanillaFlower",
+    "DisplayName": "양귀비",
+    "FamilyDisplayName": "기본 꽃 작물"
+  },
+  {
+    "ItemId": "(O)264",
+    "Family": "VanillaVegetable",
+    "DisplayName": "무",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)266",
+    "Family": "VanillaVegetable",
+    "DisplayName": "붉은 양배추",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)268",
+    "Family": "VanillaFruit",
+    "DisplayName": "스타프루트",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)593",
+    "Family": "VanillaFlower",
+    "DisplayName": "여름별꽃",
+    "FamilyDisplayName": "기본 꽃 작물"
+  },
+  {
+    "ItemId": "(O)SummerSquash",
+    "Family": "VanillaVegetable",
+    "DisplayName": "여름호박",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)421",
+    "Family": "VanillaFlower",
+    "DisplayName": "해바라기",
+    "FamilyDisplayName": "기본 꽃 작물"
+  },
+  {
+    "ItemId": "(O)256",
+    "Family": "VanillaVegetable",
+    "DisplayName": "토마토",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)262",
+    "Family": "VanillaGrain",
+    "DisplayName": "밀",
+    "FamilyDisplayName": "기본 곡물 작물"
+  },
+  {
+    "ItemId": "(O)300",
+    "Family": "VanillaGrain",
+    "DisplayName": "아마란스",
+    "FamilyDisplayName": "기본 곡물 작물"
+  },
+  {
+    "ItemId": "(O)274",
+    "Family": "VanillaVegetable",
+    "DisplayName": "아티초크",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)284",
+    "Family": "VanillaVegetable",
+    "DisplayName": "사탕무",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)278",
+    "Family": "VanillaVegetable",
+    "DisplayName": "청경채",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)Broccoli",
+    "Family": "VanillaVegetable",
+    "DisplayName": "브로콜리",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)282",
+    "Family": "VanillaFruit",
+    "DisplayName": "크랜베리",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)272",
+    "Family": "VanillaVegetable",
+    "DisplayName": "가지",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)595",
+    "Family": "VanillaFlower",
+    "DisplayName": "요정장미",
+    "FamilyDisplayName": "기본 꽃 작물"
+  },
+  {
+    "ItemId": "(O)398",
+    "Family": "VanillaFruit",
+    "DisplayName": "포도",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)276",
+    "Family": "VanillaVegetable",
+    "DisplayName": "호박",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)280",
+    "Family": "VanillaVegetable",
+    "DisplayName": "참마",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)Powdermelon",
+    "Family": "VanillaFruit",
+    "DisplayName": "파우더멜론",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)454",
+    "Family": "VanillaSpecial",
+    "DisplayName": "고대 과일",
+    "FamilyDisplayName": "기본 특수 작물"
+  },
+  {
+    "ItemId": "(O)90",
+    "Family": "VanillaFruit",
+    "DisplayName": "선인장 열매",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)832",
+    "Family": "VanillaFruit",
+    "DisplayName": "파인애플",
+    "FamilyDisplayName": "기본 과실 작물"
+  },
+  {
+    "ItemId": "(O)889",
+    "Family": "VanillaSpecial",
+    "DisplayName": "치 열매",
+    "FamilyDisplayName": "기본 특수 작물"
+  },
+  {
+    "ItemId": "(O)417",
+    "Family": "VanillaSpecial",
+    "DisplayName": "달콤보석베리",
+    "FamilyDisplayName": "기본 특수 작물"
+  },
+  {
+    "ItemId": "(O)830",
+    "Family": "VanillaVegetable",
+    "DisplayName": "토란",
+    "FamilyDisplayName": "기본 채소 작물"
+  },
+  {
+    "ItemId": "(O)815",
+    "Family": "VanillaBeverage",
+    "DisplayName": "찻잎",
+    "FamilyDisplayName": "기본 음료 작물"
+  }
 ]

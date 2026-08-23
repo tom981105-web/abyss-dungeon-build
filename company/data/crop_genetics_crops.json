@@ -1,0 +1,12 @@
+[
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_Watermelon","Family":"Watermelon","DisplayName":"수박","FamilyDisplayName":"수박 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_HoneyWatermelon","Family":"Watermelon","DisplayName":"꿀수박","FamilyDisplayName":"수박 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_MiniWatermelon","Family":"Watermelon","DisplayName":"미니수박","FamilyDisplayName":"수박 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_GoldenWatermelon","Family":"Watermelon","DisplayName":"황금수박","FamilyDisplayName":"수박 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_StarlightWatermelon","Family":"Watermelon","DisplayName":"별빛수박","FamilyDisplayName":"수박 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_KoreanMelon","Family":"KoreanMelon","DisplayName":"참외","FamilyDisplayName":"참외 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_WhiteChamoe","Family":"KoreanMelon","DisplayName":"백참외","FamilyDisplayName":"참외 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_GoldenChamoe","Family":"KoreanMelon","DisplayName":"황금참외","FamilyDisplayName":"참외 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_MiniChamoe","Family":"KoreanMelon","DisplayName":"미니참외","FamilyDisplayName":"참외 계열"},
+  {"ItemId":"(O)Saebyeol.WatermelonCrop_NapaCabbage","Family":"NapaCabbage","DisplayName":"배추","FamilyDisplayName":"배추 계열"}
+]
