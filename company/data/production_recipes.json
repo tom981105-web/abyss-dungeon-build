@@ -1,0 +1,46 @@
+[
+  {
+    "Key": "TomatoJuice",
+    "DisplayName": "토마토주스",
+    "Description": "기본 스타듀 토마토를 착즙해 만드는 첫 독립 생산라인입니다.",
+    "IngredientItemId": "(O)256",
+    "IngredientFamily": "",
+    "InputQuantity": 3,
+    "OutputQuantity": 2,
+    "DurationMinutes": 60,
+    "RequiredCompanyLevel": 1
+  },
+  {
+    "Key": "WatermelonJuice",
+    "DisplayName": "수박주스",
+    "Description": "수박 계열 원물 2개를 세척·절단·착즙해 병입합니다.",
+    "IngredientItemId": "",
+    "IngredientFamily": "Watermelon",
+    "InputQuantity": 2,
+    "OutputQuantity": 2,
+    "DurationMinutes": 80,
+    "RequiredCompanyLevel": 1
+  },
+  {
+    "Key": "ChamoeGiftSet",
+    "DisplayName": "참외 선물세트",
+    "Description": "참외 계열 원물을 선별해 프리미엄 포장 세트로 만듭니다.",
+    "IngredientItemId": "",
+    "IngredientFamily": "KoreanMelon",
+    "InputQuantity": 5,
+    "OutputQuantity": 1,
+    "DurationMinutes": 100,
+    "RequiredCompanyLevel": 2
+  },
+  {
+    "Key": "SaltedNapaCabbage",
+    "DisplayName": "절임배추",
+    "Description": "배추를 선별·절임해 김치 생산 전 단계의 반가공품으로 만듭니다.",
+    "IngredientItemId": "",
+    "IngredientFamily": "NapaCabbage",
+    "InputQuantity": 4,
+    "OutputQuantity": 2,
+    "DurationMinutes": 120,
+    "RequiredCompanyLevel": 2
+  }
+]
