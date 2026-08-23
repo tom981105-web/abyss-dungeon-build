@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace WatermelonGeneticsCore;
+namespace AgriculturalCompany;
 
 internal sealed class CompanyMenu : IClickableMenu
 {
@@ -65,7 +65,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private void DrawSidebar(SpriteBatch b)
     {
         b.DrawString(Game1.dialogueFont, "농업회사", new Vector2(xPositionOnScreen + 25, yPositionOnScreen + 23), Color.White);
-        b.DrawString(Game1.smallFont, "COMPANY CORE 0.1", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
+        b.DrawString(Game1.smallFont, "STANDALONE 0.1", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
 
         for (int i = 0; i < Tabs.Count; i++)
         {
@@ -75,13 +75,12 @@ internal sealed class CompanyMenu : IClickableMenu
             b.DrawString(Game1.smallFont, tab.Name, new Vector2(tab.Bounds.X + 16, tab.Bounds.Y + 8), Color.White);
         }
 
-        b.DrawString(Game1.smallFont, "F7 회사 관리", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + height - 67), new Color(215, 228, 210));
-        b.DrawString(Game1.smallFont, "F8 품종 도감", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + height - 39), new Color(215, 228, 210));
+        b.DrawString(Game1.smallFont, "F7 회사 관리", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + height - 48), new Color(215, 228, 210));
     }
 
     private void DrawDashboard(SpriteBatch b)
     {
-        CompanySaveData c = Mod.State.Company;
+        CompanySaveData c = Mod.State;
         int x = xPositionOnScreen + 250;
         int y = yPositionOnScreen + 28;
         int w = width - 285;
@@ -100,23 +99,24 @@ internal sealed class CompanyMenu : IClickableMenu
 
         int sectionY = cardY + 125;
         b.DrawString(Game1.dialogueFont, "작물 생산 현황", new Vector2(x, sectionY), Game1.textColor);
-        b.DrawString(Game1.smallFont, "수박 · 참외 · 배추 계열 생산량", new Vector2(x, sectionY + 39), Muted);
+        b.DrawString(Game1.smallFont, "기본 작물과 설치된 작물 모드의 생산량을 별도 데이터로 추적합니다.", new Vector2(x, sectionY + 39), Muted);
 
         int rowY = sectionY + 78;
-        int rowW = (w - 24) / 3;
-        DrawCropCard(b, x, rowY, rowW, "수박 계열", "Watermelon");
-        DrawCropCard(b, x + rowW + 12, rowY, rowW, "참외 계열", "KoreanMelon");
-        DrawCropCard(b, x + (rowW + 12) * 2, rowY, rowW, "배추", "NapaCabbage");
+        int rowW = (w - 36) / 4;
+        DrawCropCard(b, x, rowY, rowW, "기본 작물", "Vanilla");
+        DrawCropCard(b, x + rowW + 12, rowY, rowW, "수박 계열", "Watermelon");
+        DrawCropCard(b, x + (rowW + 12) * 2, rowY, rowW, "참외 계열", "KoreanMelon");
+        DrawCropCard(b, x + (rowW + 12) * 3, rowY, rowW, "배추", "NapaCabbage");
 
         int noteY = rowY + 175;
         drawTextureBox(b, x, noteY, w, 72, Color.White);
-        b.DrawString(Game1.smallFont, "회사 Core 0.1", new Vector2(x + 18, noteY + 12), Accent);
-        b.DrawString(Game1.smallFont, "0.2 창고 → 0.3 생산라인 → 0.4 납품 계약", new Vector2(x + 18, noteY + 40), Muted);
+        b.DrawString(Game1.smallFont, "Agricultural Company 0.1 · Crop Genetics와 독립 실행", new Vector2(x + 18, noteY + 12), Accent);
+        b.DrawString(Game1.smallFont, "다음: 0.2 창고 → 0.3 생산라인 → 0.4 납품 계약", new Vector2(x + 18, noteY + 40), Muted);
     }
 
     private void DrawXp(SpriteBatch b, int x, int y, int w)
     {
-        CompanySaveData c = Mod.State.Company;
+        CompanySaveData c = Mod.State;
         int start = CompanyCore.GetLevelStartXp(c.Level);
         int next = CompanyCore.GetNextLevelXp(c.Level);
         float p = c.Level >= 5 ? 1f : Math.Clamp((c.Experience - start) / (float)Math.Max(1, next - start), 0f, 1f);
@@ -135,25 +135,23 @@ internal sealed class CompanyMenu : IClickableMenu
 
     private void DrawCropCard(SpriteBatch b, int x, int y, int w, string title, string family)
     {
-        CompanySaveData c = Mod.State.Company;
+        CompanySaveData c = Mod.State;
         drawTextureBox(b, x, y, w, 150, Color.White);
-        b.DrawString(Game1.dialogueFont, title, new Vector2(x + 16, y + 16), Game1.textColor);
-        b.DrawString(Game1.smallFont, $"오늘  {Mod.Company.GetTotal(c.TodayHarvest, family):N0}", new Vector2(x + 18, y + 66), Muted);
-        b.DrawString(Game1.smallFont, $"계절  {Mod.Company.GetTotal(c.SeasonHarvest, family):N0}", new Vector2(x + 18, y + 94), Muted);
-        b.DrawString(Game1.smallFont, $"누적  {Mod.Company.GetTotal(c.LifetimeHarvest, family):N0}", new Vector2(x + 18, y + 122), Accent);
+        b.DrawString(Game1.smallFont, title, new Vector2(x + 14, y + 18), Game1.textColor);
+        b.DrawString(Game1.smallFont, $"오늘 {Mod.Company.GetTotal(c.TodayHarvest, family):N0}", new Vector2(x + 14, y + 55), Muted);
+        b.DrawString(Game1.smallFont, $"계절 {Mod.Company.GetTotal(c.SeasonHarvest, family):N0}", new Vector2(x + 14, y + 84), Muted);
+        b.DrawString(Game1.smallFont, $"누적 {Mod.Company.GetTotal(c.LifetimeHarvest, family):N0}", new Vector2(x + 14, y + 113), Accent);
     }
 
     private void DrawComingSoon(SpriteBatch b, string tab)
     {
         int x = xPositionOnScreen + 285;
-        int y = yPositionOnScreen + 170;
+        int y = yPositionOnScreen + 155;
         int w = width - 350;
         drawTextureBox(b, x, y, w, 300, Color.White);
         b.DrawString(Game1.dialogueFont, tab, new Vector2(x, y - 65), Game1.textColor);
         string version = tab == "창고" ? "0.2" : tab == "생산" ? "0.3" : tab == "계약" ? "0.4" : "후속 업데이트";
-        string line1 = $"{tab} 시스템 준비 중";
-        string line2 = $"{version}에서 실제 기능이 연결됩니다.";
-        b.DrawString(Game1.dialogueFont, line1, new Vector2(x + 40, y + 95), Accent);
-        b.DrawString(Game1.smallFont, line2, new Vector2(x + 42, y + 155), Muted);
+        b.DrawString(Game1.dialogueFont, $"{tab} 시스템 준비 중", new Vector2(x + 40, y + 95), Accent);
+        b.DrawString(Game1.smallFont, $"{version}에서 실제 기능이 연결됩니다.", new Vector2(x + 42, y + 155), Muted);
     }
 }

@@ -1,0 +1,41 @@
+name: Build Agricultural Company
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'company/**'
+      - '.github/workflows/company-build.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'company/**'
+      - '.github/workflows/company-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up .NET 6
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+      - name: Add Stardew Valley and SMAPI reference assemblies
+        uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
+      - name: Build Agricultural Company
+        shell: bash
+        run: |
+          GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
+          dotnet build company/src/AgriculturalCompany.csproj -c Release /p:GamePath="$GAME_PATH"
+      - name: Upload standalone DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgriculturalCompany-dll
+          path: company/src/bin/Release/net6.0/AgriculturalCompany.dll
+          if-no-files-found: error

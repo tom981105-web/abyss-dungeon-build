@@ -2,25 +2,11 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 
-namespace WatermelonGeneticsCore;
+namespace AgriculturalCompany;
 
 internal sealed class CompanyCore
 {
     private readonly ModEntry Mod;
-
-    internal static readonly CompanyCropDefinition[] Crops =
-    {
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_Watermelon", Family = "Watermelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_HoneyWatermelon", Family = "Watermelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_MiniWatermelon", Family = "Watermelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_GoldenWatermelon", Family = "Watermelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_StarlightWatermelon", Family = "Watermelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_KoreanMelon", Family = "KoreanMelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_WhiteChamoe", Family = "KoreanMelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_GoldenChamoe", Family = "KoreanMelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_MiniChamoe", Family = "KoreanMelon" },
-        new() { ItemId = "(O)Saebyeol.WatermelonCrop_NapaCabbage", Family = "NapaCabbage" }
-    };
 
     internal CompanyCore(ModEntry mod)
     {
@@ -30,16 +16,6 @@ internal sealed class CompanyCore
     internal void Initialize(IModHelper helper)
     {
         helper.Events.Player.InventoryChanged += OnInventoryChanged;
-    }
-
-    internal void OnSaveLoaded()
-    {
-        EnsureState();
-    }
-
-    internal void OnDayStarted()
-    {
-        EnsureState();
     }
 
     internal bool HandleButton(ButtonPressedEventArgs e)
@@ -82,22 +58,21 @@ internal sealed class CompanyCore
         if (amount <= 0)
             return;
 
-        CompanyCropDefinition? crop = Crops.FirstOrDefault(p => string.Equals(p.ItemId, item.QualifiedItemId, StringComparison.OrdinalIgnoreCase));
+        TrackedCropDefinition? crop = Mod.Crops.FirstOrDefault(p => string.Equals(p.ItemId, item.QualifiedItemId, StringComparison.OrdinalIgnoreCase));
         if (crop is null)
             return;
 
         EnsureState();
-        CompanySaveData company = Mod.State.Company;
-        Add(company.TodayHarvest, crop.ItemId, amount);
-        Add(company.SeasonHarvest, crop.ItemId, amount);
-        Add(company.LifetimeHarvest, crop.ItemId, amount);
+        Add(Mod.State.TodayHarvest, crop.ItemId, amount);
+        Add(Mod.State.SeasonHarvest, crop.ItemId, amount);
+        Add(Mod.State.LifetimeHarvest, crop.ItemId, amount);
 
-        int oldLevel = company.Level;
-        company.Experience += amount;
-        UpdateLevel(company);
-        if (company.Level > oldLevel)
+        int oldLevel = Mod.State.Level;
+        Mod.State.Experience += amount;
+        UpdateLevel(Mod.State);
+        if (Mod.State.Level > oldLevel)
         {
-            Game1.addHUDMessage(new HUDMessage($"농업회사 단계 상승! {GetStageName(company.Level)}"));
+            Game1.addHUDMessage(new HUDMessage($"농업회사 단계 상승! {GetStageName(Mod.State.Level)}"));
             Game1.playSound("achievement");
         }
     }
@@ -107,35 +82,34 @@ internal sealed class CompanyCore
         if (!Context.IsWorldReady)
             return;
 
-        CompanySaveData company = Mod.State.Company;
-        if (string.IsNullOrWhiteSpace(company.CompanyName))
+        if (string.IsNullOrWhiteSpace(Mod.State.CompanyName))
         {
             string farm = Game1.player.farmName.Value;
-            company.CompanyName = string.IsNullOrWhiteSpace(farm) ? "새별 농업" : $"{farm} 농업";
+            Mod.State.CompanyName = string.IsNullOrWhiteSpace(farm) ? "새별 농업" : $"{farm} 농업";
         }
 
         string dayKey = $"{Game1.year}:{Game1.currentSeason}:{Game1.dayOfMonth}";
-        if (!string.Equals(company.LastDayKey, dayKey, StringComparison.Ordinal))
+        if (!string.Equals(Mod.State.LastDayKey, dayKey, StringComparison.Ordinal))
         {
-            company.TodayHarvest.Clear();
-            company.LastDayKey = dayKey;
+            Mod.State.TodayHarvest.Clear();
+            Mod.State.LastDayKey = dayKey;
         }
 
         string seasonKey = $"{Game1.year}:{Game1.currentSeason}";
-        if (!string.Equals(company.SeasonKey, seasonKey, StringComparison.Ordinal))
+        if (!string.Equals(Mod.State.SeasonKey, seasonKey, StringComparison.Ordinal))
         {
-            company.SeasonHarvest.Clear();
-            company.SeasonRevenue = 0;
-            company.SeasonKey = seasonKey;
+            Mod.State.SeasonHarvest.Clear();
+            Mod.State.SeasonRevenue = 0;
+            Mod.State.SeasonKey = seasonKey;
         }
 
-        UpdateLevel(company);
+        UpdateLevel(Mod.State);
     }
 
     internal int GetTotal(Dictionary<string, int> source, string? family = null)
     {
         int total = 0;
-        foreach (CompanyCropDefinition crop in Crops)
+        foreach (TrackedCropDefinition crop in Mod.Crops)
         {
             if (family is not null && !string.Equals(crop.Family, family, StringComparison.OrdinalIgnoreCase))
                 continue;
