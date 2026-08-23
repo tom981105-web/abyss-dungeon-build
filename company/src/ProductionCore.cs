@@ -67,7 +67,7 @@ internal sealed class ProductionCore
         {
             if (!Mod.Multiplayer.IsSynchronized)
             {
-                message = "회사 데이터를 호스트와 동기화하는 중입니다.";
+                message = "공동 회사 데이터를 동기화하는 중입니다.";
                 Mod.Multiplayer.RequestSync();
                 return false;
             }
@@ -80,7 +80,7 @@ internal sealed class ProductionCore
             }
 
             Mod.Multiplayer.RequestProduction(recipeKey, Math.Max(1, requestedBatches));
-            message = $"{recipe.DisplayName} 생산 요청을 호스트에 전송했습니다.";
+            message = $"{recipe.DisplayName} 생산 요청을 전송했습니다.";
             return true;
         }
 
