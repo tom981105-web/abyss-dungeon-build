@@ -1,9 +1,9 @@
   Determining projects to restore...
-  Restored /home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/WatermelonGenetics.csproj (in 85 ms).
+  Restored /home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/WatermelonGenetics.csproj (in 86 ms).
   WatermelonGenetics -> /home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/bin/Release/net6.0/WatermelonGenetics.dll
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:05.47
+Time Elapsed 00:00:05.05
