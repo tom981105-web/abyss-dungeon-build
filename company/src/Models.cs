@@ -29,6 +29,9 @@ public sealed class CompanySaveData
     public Dictionary<string, ProductStockEntry> FinishedGoods { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public long LifetimeProductionBatches { get; set; }
     public long LifetimeFinishedGoods { get; set; }
+
+    // 0.3.1 multiplayer revision used to reject stale snapshots on farmhands.
+    public long NetworkRevision { get; set; }
 }
 
 public sealed class TrackedCropDefinition
