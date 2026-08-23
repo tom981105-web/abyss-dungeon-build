@@ -81,8 +81,8 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.8.3 keeps the stable post-click production route from 0.8.2 and replaces
-        // the broken embedded Base64 product icon atlas with a real SMAPI-loaded PNG asset.
+        // 0.8.4 keeps the stable post-click production route and real PNG icon assets,
+        // while routing the production tab into the dedicated visual rebuild.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -93,7 +93,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.8.3 loaded. Stable Production UI routing and real PNG product icon assets enabled for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.8.4 loaded. Production UI Visual Upgrade enabled with stable PNG product icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
