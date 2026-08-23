@@ -170,6 +170,9 @@ internal sealed class CompanyCore
 
     internal int DepositFromPlayer(string itemId, int requested)
     {
+        if (Context.IsMultiplayer && !Mod.Multiplayer.LocalHasWarehouseControl)
+            return -2;
+
         if (Context.IsMultiplayer && !Context.IsMainPlayer)
         {
             Mod.Multiplayer.RequestWarehouse(itemId, Math.Max(1, requested), deposit: true, all: false);
@@ -184,6 +187,9 @@ internal sealed class CompanyCore
 
     internal int DepositAllFromPlayer(string itemId)
     {
+        if (Context.IsMultiplayer && !Mod.Multiplayer.LocalHasWarehouseControl)
+            return -2;
+
         if (Context.IsMultiplayer && !Context.IsMainPlayer)
         {
             Mod.Multiplayer.RequestWarehouse(itemId, 1, deposit: true, all: true);
@@ -198,6 +204,9 @@ internal sealed class CompanyCore
 
     internal int WithdrawToPlayer(string itemId, int requested)
     {
+        if (Context.IsMultiplayer && !Mod.Multiplayer.LocalHasWarehouseControl)
+            return -2;
+
         if (Context.IsMultiplayer && !Context.IsMainPlayer)
         {
             Mod.Multiplayer.RequestWarehouse(itemId, Math.Max(1, requested), deposit: false, all: false);
@@ -212,6 +221,9 @@ internal sealed class CompanyCore
 
     internal int WithdrawAllToPlayer(string itemId)
     {
+        if (Context.IsMultiplayer && !Mod.Multiplayer.LocalHasWarehouseControl)
+            return -2;
+
         if (Context.IsMultiplayer && !Context.IsMainPlayer)
         {
             Mod.Multiplayer.RequestWarehouse(itemId, 1, deposit: false, all: true);
