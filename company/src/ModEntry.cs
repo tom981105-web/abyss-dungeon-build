@@ -21,6 +21,7 @@ public sealed class ModEntry : Mod
     internal ClientCore Clients { get; private set; } = null!;
     internal BrandCore Brand { get; private set; } = null!;
     internal MultiplayerCore Multiplayer { get; private set; } = null!;
+    internal ProductIconRenderer Icons { get; private set; } = null!;
     internal Production2Ui ProductionUi { get; private set; } = null!;
     internal ProductionQualityUi QualityUi { get; private set; } = null!;
     internal ProductExpansionUi ProductUi { get; private set; } = null!;
@@ -59,6 +60,7 @@ public sealed class ModEntry : Mod
         Brand = new BrandCore(this);
         Contracts = new ContractCore(this);
         Multiplayer = new MultiplayerCore(this);
+        Icons = new ProductIconRenderer(this);
         ProductionUi = new Production2Ui(this);
         QualityUi = new ProductionQualityUi(this);
         ProductUi = new ProductExpansionUi(this);
@@ -78,7 +80,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.7.3 loaded. Vanilla Crop Production Expansion enabled: {vanillaCropCount} vanilla crops, {vanillaProducts.Count} vanilla product recipes, {Recipes.Count} total recipes. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.7.4 loaded. Product icon system enabled: embedded pixel-art templates + live ingredient sprite composition for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
