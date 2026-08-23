@@ -1,9 +1,11 @@
   Determining projects to restore...
-  Restored /home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/WatermelonGenetics.csproj (in 67 ms).
-  WatermelonGenetics -> /home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/bin/Release/net6.0/WatermelonGenetics.dll
+  Restored /home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/WatermelonGenetics.csproj (in 63 ms).
+/home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/ContentBridge.cs(95,35): error CS0136: A local or parameter named 'list' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [/home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/WatermelonGenetics.csproj]
 
-Build succeeded.
+Build FAILED.
+
+/home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/ContentBridge.cs(95,35): error CS0136: A local or parameter named 'list' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [/home/runner/work/abyss-dungeon-build/abyss-dungeon-build/src/WatermelonGenetics.csproj]
     0 Warning(s)
-    0 Error(s)
+    1 Error(s)
 
-Time Elapsed 00:00:04.77
+Time Elapsed 00:00:02.10
