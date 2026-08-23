@@ -27,6 +27,20 @@ jobs:
       - name: Add Stardew Valley and SMAPI reference assemblies
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
 
+      - name: Patch standalone root-list data support
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/ContentBridge.cs')
+          s = p.read_text(encoding='utf-8')
+          old = '''        if (targetField is null || targetField.Count == 0)\n        {\n            ApplyDictionaryEntries(rootData, entries);\n            return;\n        }'''
+          new = '''        if (targetField is null || targetField.Count == 0)\n        {\n            if (rootData is IDictionary)\n            {\n                ApplyDictionaryEntries(rootData, entries);\n                return;\n            }\n\n            if (rootData is IList list)\n            {\n                ApplyListEntries(list, entries);\n                return;\n            }\n\n            throw new InvalidOperationException($"Unsupported root data type {rootData.GetType().FullName}.");\n        }'''
+          if old not in s:
+              raise SystemExit('Expected ContentBridge root-data block was not found.')
+          p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+
       - name: Build and capture log
         id: build
         shell: bash
@@ -36,7 +50,6 @@ jobs:
           dotnet build src/WatermelonGenetics.csproj -c Release /p:GamePath="$GAME_PATH" 2>&1 | tee build.log
           STATUS=${PIPESTATUS[0]}
           mkdir -p dist
-          rm -rf dist/chunks
           cp build.log dist/build.log
           if [ "$STATUS" -eq 0 ] && [ -f src/bin/Release/net6.0/WatermelonGenetics.dll ]; then
             cp src/bin/Release/net6.0/WatermelonGenetics.dll dist/WatermelonGenetics.dll
