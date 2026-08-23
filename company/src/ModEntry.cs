@@ -28,8 +28,26 @@ public sealed class ModEntry : Mod
     public override void Entry(IModHelper helper)
     {
         Config = helper.ReadConfig<ModConfig>();
+
+        // 0.7.3: the base company mod owns the complete vanilla crop catalog.
+        // Crop Genetics metadata is kept in a separate optional file so custom crops remain an independent mod layer.
         Crops = helper.Data.ReadJsonFile<List<TrackedCropDefinition>>("data/tracked_crops.json") ?? new();
+        List<TrackedCropDefinition> optionalCropGenetics = helper.Data.ReadJsonFile<List<TrackedCropDefinition>>("data/crop_genetics_crops.json") ?? new();
+        foreach (TrackedCropDefinition crop in optionalCropGenetics)
+        {
+            if (!Crops.Any(p => string.Equals(p.ItemId, crop.ItemId, StringComparison.OrdinalIgnoreCase)))
+                Crops.Add(crop);
+        }
+
         Recipes = helper.Data.ReadJsonFile<List<ProductionRecipeDefinition>>("data/production_recipes.json") ?? new();
+        List<VanillaProductDefinition> vanillaProducts = helper.Data.ReadJsonFile<List<VanillaProductDefinition>>("data/vanilla_products.json") ?? new();
+        Recipes.AddRange(VanillaProductionCatalog.Build(vanillaProducts));
+        Recipes = Recipes
+            .Where(p => p is not null && !string.IsNullOrWhiteSpace(p.Key))
+            .GroupBy(p => p.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(p => p.First())
+            .ToList();
+
         ContractTemplates = helper.Data.ReadJsonFile<List<ContractTemplateDefinition>>("data/contract_templates.json") ?? new();
         ClientProfiles = helper.Data.ReadJsonFile<List<ClientProfileDefinition>>("data/client_profiles.json") ?? new();
 
@@ -59,7 +77,8 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.7.2 loaded. Production 2.2 product trees + shared intermediates + expanded catalog enabled. {Recipes.Count} production recipes. F7 opens management.", LogLevel.Info);
+        int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
+        Monitor.Log($"Agricultural Company 0.7.3 loaded. Vanilla Crop Production Expansion enabled: {vanillaCropCount} vanilla crops, {vanillaProducts.Count} vanilla product recipes, {Recipes.Count} total recipes. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
