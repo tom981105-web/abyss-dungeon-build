@@ -81,9 +81,9 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.8.1: the production route has a second guard on CompanyMenu.SelectedTab.
-        // Even if CompanyMenu consumes the original click first, the next update tick replaces
-        // the legacy production tab with the approved reference-style Production080Menu.
+        // 0.8.2: CompanyMenu is allowed to finish its own production-tab click first.
+        // Production080 then waits for MouseLeft to be fully released and swaps the menu on
+        // a later update tick, avoiding the immediate-dismiss race seen in 0.8.1.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -94,7 +94,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.8.1 loaded. Reference-style production UI route guard enabled with product/process icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.8.2 loaded. Stable post-click Production UI routing enabled with product/process icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
