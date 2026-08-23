@@ -39,6 +39,12 @@ public sealed class CompanySaveData
     // 0.5 persistent client relationships. Shared by every co-owner in multiplayer.
     public Dictionary<string, ClientRelationship> ClientRelationships { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
+    // 0.6 brand progression. Brand points represent consumer awareness, separate from company reputation and client trust.
+    public int BrandPoints { get; set; }
+    public int BrandCampaignsRun { get; set; }
+    public int LastBrandCampaignDayNumber { get; set; }
+    public Dictionary<string, ProductBrandStats> ProductBrands { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
     // Multiplayer snapshot revision.
     public long NetworkRevision { get; set; }
 }
@@ -142,4 +148,25 @@ public sealed class ClientRelationship
     public long LifetimeRevenue { get; set; }
     public long DeliveredUnits { get; set; }
     public int LastContractDayNumber { get; set; }
+}
+
+public sealed class ProductBrandStats
+{
+    public string ProductKey { get; set; } = "";
+    public int Score { get; set; }
+    public int ContractsCompleted { get; set; }
+    public int HighQualityContracts { get; set; }
+    public long UnitsSold { get; set; }
+    public long LifetimeRevenue { get; set; }
+}
+
+public sealed class BrandCampaignDefinition
+{
+    public string Key { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int Cost { get; set; }
+    public int BrandGain { get; set; }
+    public int RequiredCompanyLevel { get; set; } = 1;
+    public int RequiredBrandPoints { get; set; }
 }
