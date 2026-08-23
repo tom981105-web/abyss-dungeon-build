@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.5.0",
-  "Description": "A standalone agricultural company management system with persistent client relationships, contracts, warehouse storage, production, company funds, reputation, and equal-partner multiplayer.",
+  "Version": "0.6.0",
+  "Description": "A standalone agricultural company management system with brand progression, product reputation, client relationships, contracts, warehouse storage, production, company funds, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
