@@ -14,6 +14,7 @@ internal sealed class MultiplayerCore
     private const string MessageWarehouseRequest = "warehouse-request";
     private const string MessageProductionRequest = "production-request";
     private const string MessageContractRequest = "contract-request";
+    private const string MessageBrandRequest = "brand-request";
     private const string MessageOperationResult = "operation-result";
     private const string MessageWarehouseLockRequest = "warehouse-lock-request";
     private const string MessageWarehouseLockRelease = "warehouse-lock-release";
@@ -78,7 +79,6 @@ internal sealed class MultiplayerCore
     {
         if (!Context.IsWorldReady || !Context.IsMainPlayer || !Context.IsMultiplayer)
             return;
-
         Mod.State.NetworkRevision++;
         Mod.Helper.Multiplayer.SendMessage(Mod.State, MessageStateSnapshot, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
@@ -101,14 +101,12 @@ internal sealed class MultiplayerCore
     {
         if (amount <= 0)
             return;
-
         if (Context.IsMainPlayer)
         {
             Mod.Company.ApplyHarvestReport(itemId, amount);
             BroadcastState();
             return;
         }
-
         Mod.Helper.Multiplayer.SendMessage(new HarvestReportMessage { ItemId = itemId, Amount = amount }, MessageHarvestReport, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
@@ -131,6 +129,13 @@ internal sealed class MultiplayerCore
         if (Context.IsMainPlayer)
             return;
         Mod.Helper.Multiplayer.SendMessage(new ContractRequestMessage { ContractId = contractId, Action = action }, MessageContractRequest, modIDs: new[] { Mod.ModManifest.UniqueID });
+    }
+
+    internal void RequestBrandCampaign(string campaignKey)
+    {
+        if (Context.IsMainPlayer)
+            return;
+        Mod.Helper.Multiplayer.SendMessage(new BrandRequestMessage { CampaignKey = campaignKey }, MessageBrandRequest, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
     internal void RequestWarehouseControl()
@@ -185,13 +190,11 @@ internal sealed class MultiplayerCore
     {
         if (!Context.IsMultiplayer || !Context.IsWorldReady || !LocalHasWarehouseControl)
             return;
-
         if (Context.IsMainPlayer)
         {
             WarehouseLockHeartbeatUtc = DateTime.UtcNow;
             return;
         }
-
         Mod.Helper.Multiplayer.SendMessage(new WarehouseLockHeartbeatMessage(), MessageWarehouseLockHeartbeat, modIDs: new[] { Mod.ModManifest.UniqueID });
     }
 
@@ -340,6 +343,18 @@ internal sealed class MultiplayerCore
             return;
         }
 
+        if (e.Type == MessageBrandRequest)
+        {
+            if (!Context.IsMainPlayer)
+                return;
+            BrandRequestMessage request = e.ReadAs<BrandRequestMessage>();
+            bool ok = Mod.Brand.TryRunCampaignAuthoritative(request.CampaignKey, out string message);
+            SendOperationResult(e.FromPlayerID, ok, message);
+            if (ok)
+                BroadcastState();
+            return;
+        }
+
         if (e.Type == MessageOperationResult && !Context.IsMainPlayer)
         {
             if (Game1.MasterPlayer is not null && e.FromPlayerID != Game1.MasterPlayer.UniqueMultiplayerID)
@@ -459,6 +474,11 @@ public sealed class ContractRequestMessage
 {
     public string ContractId { get; set; } = "";
     public string Action { get; set; } = "";
+}
+
+public sealed class BrandRequestMessage
+{
+    public string CampaignKey { get; set; } = "";
 }
 
 public sealed class WarehouseLockRequestMessage
