@@ -26,7 +26,7 @@ public sealed class CompanySaveData
     public long LifetimeDeposited { get; set; }
     public long LifetimeWithdrawn { get; set; }
 
-    // Production 2.0/2.1 keeps the old fields for forward save compatibility.
+    // Production 2.0/2.1/2.2 keeps old fields for forward save compatibility.
     public List<ProductionJob> ProductionQueue { get; set; } = new();
     public Dictionary<string, ProductStockEntry> FinishedGoods { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public long LifetimeProductionBatches { get; set; }
@@ -76,12 +76,25 @@ public sealed class ProductionRecipeDefinition
     public string Key { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Description { get; set; } = "";
+
+    // Raw-material input. Leave both blank when IngredientIntermediateKey is used.
     public string IngredientItemId { get; set; } = "";
     public string IngredientFamily { get; set; } = "";
+
+    // Production 2.2 shared intermediate input/output chain.
+    public string IngredientIntermediateKey { get; set; } = "";
+    public string IngredientDisplayName { get; set; } = "";
+    public string OutputKind { get; set; } = "Finished"; // Finished | Intermediate
+    public string OutputIntermediateKey { get; set; } = "";
+    public string OutputIntermediateDisplayName { get; set; } = "";
+    public string ProductFamily { get; set; } = "General";
+
     public int InputQuantity { get; set; } = 1;
     public int OutputQuantity { get; set; } = 1;
     public int DurationMinutes { get; set; } = 60;
     public int RequiredCompanyLevel { get; set; } = 1;
+    public int RequiredBrandPoints { get; set; }
+    public bool RequiresCropGenetics { get; set; }
     public string LineType { get; set; } = "Beverage";
     public string OutputUnit { get; set; } = "개";
     public List<ProductionStageDefinition> Stages { get; set; } = new();
@@ -208,6 +221,7 @@ public sealed class ContractTemplateDefinition
     public int BaseQuantity { get; set; } = 8;
     public int BaseUnitReward { get; set; } = 120;
     public int RequiredCompanyLevel { get; set; } = 1;
+    public int RequiredBrandPoints { get; set; }
     public int MinDeadlineDays { get; set; } = 3;
     public int MaxDeadlineDays { get; set; } = 5;
 }
