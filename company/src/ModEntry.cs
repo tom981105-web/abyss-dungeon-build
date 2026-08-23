@@ -81,9 +81,8 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.8.2: CompanyMenu is allowed to finish its own production-tab click first.
-        // Production080 then waits for MouseLeft to be fully released and swaps the menu on
-        // a later update tick, avoiding the immediate-dismiss race seen in 0.8.1.
+        // 0.8.3 keeps the stable post-click production route from 0.8.2 and replaces
+        // the broken embedded Base64 product icon atlas with a real SMAPI-loaded PNG asset.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -94,7 +93,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.8.2 loaded. Stable post-click Production UI routing enabled with product/process icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.8.3 loaded. Stable Production UI routing and real PNG product icon assets enabled for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
