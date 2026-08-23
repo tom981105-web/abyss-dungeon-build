@@ -23,7 +23,7 @@ internal sealed partial class Production084Menu : Company084MenuBase
     {
         if (Close().Contains(x, y)) { Game1.playSound("bigDeSelect"); exitThisMenu(); return; }
         if (Company().Contains(x, y)) { Game1.playSound("bigDeSelect"); Game1.activeClickableMenu = new CompanyMenu(Mod); return; }
-        if (Catalog().Contains(x, y)) { Game1.playSound("bigSelect"); Game1.activeClickableMenu = new ProductCatalog084Menu(Mod, SelectedRecipeKey); return; }
+        if (Catalog().Contains(x, y) || PlanAdd().Contains(x, y)) { Game1.playSound("bigSelect"); Game1.activeClickableMenu = new ProductCatalog084Menu(Mod, SelectedRecipeKey); return; }
 
         IReadOnlyList<ProductionLineState> lines = Mod.Production.GetLines();
         for (int i = 0; i < Math.Min(3, lines.Count); i++)
