@@ -1,0 +1,32 @@
+Agricultural Company v0.7.0 — Production 2.0 QA
+
+[UI]
+1. F7 > 생산 opens the large Production 2.0 screen.
+2. Header shows company funds, brand, active contracts, reputation.
+3. Three line cards display beverage / packaging / fermentation states.
+4. Selected recipe shows a full process flow with current-stage highlight.
+5. Right plan queue supports up/down priority and removal.
+6. Bottom panels show intermediate and graded finished stock.
+7. Close button exits and 회사 관리 button returns to the company menu.
+
+[PRODUCTION]
+8. Watermelon juice requires 6 watermelon-family crops per batch.
+9. Watermelon flow advances wash -> press -> sterilize -> bottle.
+10. Intermediate stock appears at stage boundaries and is consumed for the next stage.
+11. Free compatible lines auto-start queued plans.
+12. Plans wait safely when raw materials or compatible lines are unavailable.
+13. C/B/A/S grade is derived from raw quality + line efficiency.
+14. Finished goods retain Stardew-compatible quality values for existing contracts.
+15. Save/reload retains active lines, stages, plans, intermediates, and finished goods.
+
+[MULTIPLAYER]
+16. All co-owners can add production plans.
+17. Priority changes and plan removals synchronize through the shared state.
+18. Two users adding work at the same time do not consume the same raw stock twice.
+19. Only the canonical shared company state advances timers and completes output once.
+20. Rejoining players receive current line/stage/plan/intermediate state.
+
+[REGRESSION]
+21. Warehouse, contracts, clients, brand, and company funds still load.
+22. Crop Genetics remains optional; TomatoJuice works without it.
+23. Existing v0.1-v0.6 saves open without resetting company progress.
