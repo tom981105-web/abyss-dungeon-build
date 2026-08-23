@@ -33,7 +33,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.3.1 loaded. Multiplayer host authority enabled. {Recipes.Count} production recipes available. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.3.2 loaded. Equal-partner multiplayer + shared warehouse lock enabled. {Recipes.Count} production recipes available. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -60,11 +60,7 @@ public sealed class ModEntry : Mod
 
         Company.EnsureState();
         Production.EnsureState();
-
-        if (Context.IsMainPlayer)
-            Multiplayer.BroadcastState();
-        else
-            Multiplayer.RequestSync();
+        Multiplayer.OnDayStarted();
     }
 
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
