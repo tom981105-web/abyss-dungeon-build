@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.3.2",
-  "Description": "A standalone agricultural company management system with equal-partner multiplayer, shared warehouse locking, timed production, and synchronized company data.",
+  "Version": "0.4.0",
+  "Description": "A standalone agricultural company management system with warehouse storage, timed production, delivery contracts, company funds, reputation, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
