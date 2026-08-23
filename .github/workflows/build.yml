@@ -5,6 +5,8 @@ on:
     branches: [ main ]
     paths-ignore:
       - 'dist/**'
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -39,27 +41,29 @@ jobs:
           if [ "$STATUS" -eq 0 ] && [ -f src/bin/Release/net6.0/WatermelonGenetics.dll ]; then
             cp src/bin/Release/net6.0/WatermelonGenetics.dll dist/WatermelonGenetics.dll
             echo success > dist/status.txt
-            mkdir -p dist/chunks
-            base64 -w 0 dist/WatermelonGenetics.dll > dist/WatermelonGenetics.dll.b64
-            split -b 2500 -d -a 3 dist/WatermelonGenetics.dll.b64 dist/chunks/chunk-
-            wc -c dist/WatermelonGenetics.dll > dist/dll-size.txt
-            sha256sum dist/WatermelonGenetics.dll > dist/dll-sha256.txt
           else
-            rm -f dist/WatermelonGenetics.dll dist/WatermelonGenetics.dll.b64
+            rm -f dist/WatermelonGenetics.dll
             echo failure > dist/status.txt
           fi
           echo "status=$STATUS" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Commit build output
+      - name: Upload compiled DLL artifact
+        if: steps.build.outputs.status == '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: WatermelonGenetics-dll
+          path: dist/WatermelonGenetics.dll
+          if-no-files-found: error
+
+      - name: Commit build output on main push
+        if: github.event_name == 'push'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f dist/build.log dist/status.txt
-          if [ -f dist/WatermelonGenetics.dll ]; then
-            git add -f dist/WatermelonGenetics.dll dist/chunks dist/dll-size.txt dist/dll-sha256.txt
-          fi
+          if [ -f dist/WatermelonGenetics.dll ]; then git add -f dist/WatermelonGenetics.dll; fi
           git commit -m "Store Watermelon Genetics build output [skip ci]" || true
           git push
 
