@@ -1,79 +1,93 @@
 [
   {
-    "Key": "TomatoJuice",
-    "DisplayName": "토마토주스",
-    "Description": "토마토를 세척하고 파쇄한 뒤 가열·병입하는 음료 생산공정입니다.",
-    "IngredientItemId": "(O)256",
-    "IngredientFamily": "",
-    "InputQuantity": 5,
-    "OutputQuantity": 4,
-    "DurationMinutes": 180,
-    "RequiredCompanyLevel": 1,
-    "LineType": "Beverage",
-    "OutputUnit": "병",
-    "Stages": [
-      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedTomato","IntermediateDisplayName":"세척 토마토"},
-      {"Key":"crush","DisplayName":"파쇄","DurationMinutes":50,"IntermediateKey":"TomatoPulp","IntermediateDisplayName":"토마토 펄프"},
-      {"Key":"heat","DisplayName":"가열","DurationMinutes":50,"IntermediateKey":"TomatoBase","IntermediateDisplayName":"토마토 베이스"},
-      {"Key":"bottle","DisplayName":"병입","DurationMinutes":50,"IntermediateKey":"","IntermediateDisplayName":""}
-    ]
+    "Key":"TomatoWashedPrep","DisplayName":"세척 토마토 생산","Description":"토마토를 후속 가공에 쓰기 좋게 세척·선별합니다.","IngredientItemId":"(O)256","IngredientFamily":"","IngredientIntermediateKey":"","IngredientDisplayName":"토마토","OutputKind":"Intermediate","OutputIntermediateKey":"TomatoWashed","OutputIntermediateDisplayName":"세척 토마토","ProductFamily":"Tomato","InputQuantity":5,"OutputQuantity":5,"DurationMinutes":50,"RequiredCompanyLevel":1,"RequiredBrandPoints":0,"RequiresCropGenetics":false,"LineType":"Beverage","OutputUnit":"개","Stages":[{"Key":"wash","DisplayName":"세척","DurationMinutes":30},{"Key":"select","DisplayName":"선별","DurationMinutes":20}]
   },
   {
-    "Key": "WatermelonJuice",
-    "DisplayName": "수박주스",
-    "Description": "수박을 세척·착즙·살균하고 병입하는 대표 음료 생산공정입니다.",
-    "IngredientItemId": "",
-    "IngredientFamily": "Watermelon",
-    "InputQuantity": 6,
-    "OutputQuantity": 4,
-    "DurationMinutes": 200,
-    "RequiredCompanyLevel": 1,
-    "LineType": "Beverage",
-    "OutputUnit": "병",
-    "Stages": [
-      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedWatermelon","IntermediateDisplayName":"세척 수박"},
-      {"Key":"press","DisplayName":"착즙","DurationMinutes":60,"IntermediateKey":"WatermelonExtract","IntermediateDisplayName":"수박 원액"},
-      {"Key":"sterilize","DisplayName":"살균","DurationMinutes":60,"IntermediateKey":"SterilizedWatermelonBase","IntermediateDisplayName":"살균 수박 원액"},
-      {"Key":"bottle","DisplayName":"병입","DurationMinutes":50,"IntermediateKey":"","IntermediateDisplayName":""}
-    ]
+    "Key":"TomatoPulpPrep","DisplayName":"토마토 펄프 생산","Description":"세척 토마토를 파쇄해 소스와 케첩에 공용으로 쓰는 펄프를 만듭니다.","IngredientItemId":"","IngredientFamily":"세척 토마토","IngredientIntermediateKey":"TomatoWashed","IngredientDisplayName":"세척 토마토","OutputKind":"Intermediate","OutputIntermediateKey":"TomatoPulp","OutputIntermediateDisplayName":"토마토 펄프","ProductFamily":"Tomato","InputQuantity":5,"OutputQuantity":4,"DurationMinutes":60,"RequiredCompanyLevel":1,"RequiredBrandPoints":0,"RequiresCropGenetics":false,"LineType":"Beverage","OutputUnit":"통","Stages":[{"Key":"crush","DisplayName":"파쇄","DurationMinutes":35},{"Key":"filter","DisplayName":"정제","DurationMinutes":25}]
   },
   {
-    "Key": "ChamoeGiftSet",
-    "DisplayName": "참외 선물세트",
-    "Description": "참외를 선별·세척하고 완충포장해 프리미엄 선물세트로 출고합니다.",
-    "IngredientItemId": "",
-    "IngredientFamily": "KoreanMelon",
-    "InputQuantity": 5,
-    "OutputQuantity": 1,
-    "DurationMinutes": 150,
-    "RequiredCompanyLevel": 2,
-    "LineType": "Packaging",
-    "OutputUnit": "상자",
-    "Stages": [
-      {"Key":"select","DisplayName":"선별","DurationMinutes":40,"IntermediateKey":"SelectedChamoe","IntermediateDisplayName":"선별 참외"},
-      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedChamoe","IntermediateDisplayName":"세척 참외"},
-      {"Key":"cushion","DisplayName":"완충포장","DurationMinutes":40,"IntermediateKey":"PackedChamoe","IntermediateDisplayName":"포장 준비 참외"},
-      {"Key":"box","DisplayName":"세트 포장","DurationMinutes":40,"IntermediateKey":"","IntermediateDisplayName":""}
-    ]
+    "Key":"TomatoBasePrep","DisplayName":"토마토 베이스 생산","Description":"토마토 펄프를 가열·농축해 여러 제품이 공유하는 베이스를 만듭니다.","IngredientItemId":"","IngredientFamily":"토마토 펄프","IngredientIntermediateKey":"TomatoPulp","IngredientDisplayName":"토마토 펄프","OutputKind":"Intermediate","OutputIntermediateKey":"TomatoBase","OutputIntermediateDisplayName":"토마토 베이스","ProductFamily":"Tomato","InputQuantity":4,"OutputQuantity":4,"DurationMinutes":80,"RequiredCompanyLevel":2,"RequiredBrandPoints":0,"RequiresCropGenetics":false,"LineType":"Beverage","OutputUnit":"통","Stages":[{"Key":"heat","DisplayName":"가열","DurationMinutes":40},{"Key":"reduce","DisplayName":"농축","DurationMinutes":40}]
   },
   {
-    "Key": "SaltedNapaCabbage",
-    "DisplayName": "절임배추",
-    "Description": "배추를 세척·절단·염장·숙성한 뒤 포장하는 반가공 생산공정입니다.",
-    "IngredientItemId": "",
-    "IngredientFamily": "NapaCabbage",
-    "InputQuantity": 4,
-    "OutputQuantity": 2,
-    "DurationMinutes": 240,
-    "RequiredCompanyLevel": 2,
-    "LineType": "Fermentation",
-    "OutputUnit": "팩",
-    "Stages": [
-      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedNapa","IntermediateDisplayName":"세척 배추"},
-      {"Key":"cut","DisplayName":"절단","DurationMinutes":40,"IntermediateKey":"CutNapa","IntermediateDisplayName":"절단 배추"},
-      {"Key":"salt","DisplayName":"염장","DurationMinutes":100,"IntermediateKey":"SaltedNapa","IntermediateDisplayName":"염장 배추"},
-      {"Key":"rest","DisplayName":"숙성","DurationMinutes":40,"IntermediateKey":"RestedNapa","IntermediateDisplayName":"숙성 배추"},
-      {"Key":"pack","DisplayName":"포장","DurationMinutes":30,"IntermediateKey":"","IntermediateDisplayName":""}
-    ]
+    "Key":"WatermelonWashedPrep","DisplayName":"세척 수박 생산","Description":"수박을 선별·세척해 음료와 선물제품 생산에 공용으로 준비합니다.","IngredientItemId":"","IngredientFamily":"Watermelon","IngredientIntermediateKey":"","IngredientDisplayName":"수박","OutputKind":"Intermediate","OutputIntermediateKey":"WatermelonWashed","OutputIntermediateDisplayName":"세척 수박","ProductFamily":"Watermelon","InputQuantity":6,"OutputQuantity":6,"DurationMinutes":60,"RequiredCompanyLevel":1,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"개","Stages":[{"Key":"select","DisplayName":"선별","DurationMinutes":25},{"Key":"wash","DisplayName":"세척","DurationMinutes":35}]
+  },
+  {
+    "Key":"WatermelonExtractPrep","DisplayName":"수박 원액 생산","Description":"세척 수박을 착즙·여과해 여러 음료가 공유하는 수박 원액을 만듭니다.","IngredientItemId":"","IngredientFamily":"세척 수박","IngredientIntermediateKey":"WatermelonWashed","IngredientDisplayName":"세척 수박","OutputKind":"Intermediate","OutputIntermediateKey":"WatermelonExtract","OutputIntermediateDisplayName":"수박 원액","ProductFamily":"Watermelon","InputQuantity":6,"OutputQuantity":4,"DurationMinutes":90,"RequiredCompanyLevel":2,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"통","Stages":[{"Key":"press","DisplayName":"착즙","DurationMinutes":55},{"Key":"filter","DisplayName":"여과","DurationMinutes":35}]
+  },
+  {
+    "Key":"WatermelonSterileBasePrep","DisplayName":"살균 수박 베이스 생산","Description":"수박 원액을 살균·안정화해 프리미엄 음료용 베이스로 만듭니다.","IngredientItemId":"","IngredientFamily":"수박 원액","IngredientIntermediateKey":"WatermelonExtract","IngredientDisplayName":"수박 원액","OutputKind":"Intermediate","OutputIntermediateKey":"WatermelonSterileBase","OutputIntermediateDisplayName":"살균 수박 베이스","ProductFamily":"Watermelon","InputQuantity":4,"OutputQuantity":4,"DurationMinutes":100,"RequiredCompanyLevel":3,"RequiredBrandPoints":30,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"통","Stages":[{"Key":"sterilize","DisplayName":"살균","DurationMinutes":60},{"Key":"stabilize","DisplayName":"안정화","DurationMinutes":40}]
+  },
+  {
+    "Key":"ChamoeSelectedPrep","DisplayName":"선별 참외 생산","Description":"참외를 크기와 외관 기준으로 선별해 공용 중간재로 준비합니다.","IngredientItemId":"","IngredientFamily":"KoreanMelon","IngredientIntermediateKey":"","IngredientDisplayName":"참외","OutputKind":"Intermediate","OutputIntermediateKey":"ChamoeSelected","OutputIntermediateDisplayName":"선별 참외","ProductFamily":"KoreanMelon","InputQuantity":5,"OutputQuantity":5,"DurationMinutes":45,"RequiredCompanyLevel":1,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"개","Stages":[{"Key":"select","DisplayName":"선별","DurationMinutes":45}]
+  },
+  {
+    "Key":"ChamoeWashedPrep","DisplayName":"세척 참외 생산","Description":"선별 참외를 세척·건조해 주스와 프리미엄 세트가 공유하는 중간재로 만듭니다.","IngredientItemId":"","IngredientFamily":"선별 참외","IngredientIntermediateKey":"ChamoeSelected","IngredientDisplayName":"선별 참외","OutputKind":"Intermediate","OutputIntermediateKey":"ChamoeWashed","OutputIntermediateDisplayName":"세척 참외","ProductFamily":"KoreanMelon","InputQuantity":5,"OutputQuantity":5,"DurationMinutes":55,"RequiredCompanyLevel":2,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"개","Stages":[{"Key":"wash","DisplayName":"세척","DurationMinutes":30},{"Key":"dry","DisplayName":"건조","DurationMinutes":25}]
+  },
+  {
+    "Key":"NapaWashedPrep","DisplayName":"세척 배추 생산","Description":"배추를 세척·정리해 포장과 염장 공정에서 공유할 수 있게 준비합니다.","IngredientItemId":"","IngredientFamily":"NapaCabbage","IngredientIntermediateKey":"","IngredientDisplayName":"배추","OutputKind":"Intermediate","OutputIntermediateKey":"NapaWashed","OutputIntermediateDisplayName":"세척 배추","ProductFamily":"NapaCabbage","InputQuantity":4,"OutputQuantity":4,"DurationMinutes":60,"RequiredCompanyLevel":1,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Fermentation","OutputUnit":"포기","Stages":[{"Key":"wash","DisplayName":"세척","DurationMinutes":35},{"Key":"trim","DisplayName":"정리","DurationMinutes":25}]
+  },
+  {
+    "Key":"NapaSaltedBasePrep","DisplayName":"염장 배추 생산","Description":"세척 배추를 절단·염장해 절임제품과 김치 원료팩이 공유하는 베이스로 만듭니다.","IngredientItemId":"","IngredientFamily":"세척 배추","IngredientIntermediateKey":"NapaWashed","IngredientDisplayName":"세척 배추","OutputKind":"Intermediate","OutputIntermediateKey":"NapaSaltedBase","OutputIntermediateDisplayName":"염장 배추","ProductFamily":"NapaCabbage","InputQuantity":4,"OutputQuantity":2,"DurationMinutes":150,"RequiredCompanyLevel":2,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Fermentation","OutputUnit":"팩","Stages":[{"Key":"cut","DisplayName":"절단","DurationMinutes":40},{"Key":"salt","DisplayName":"염장","DurationMinutes":110}]
+  },
+
+  {
+    "Key":"TomatoJuice","DisplayName":"토마토주스","Description":"기본 토마토를 세척·파쇄·가열·병입하는 안정적인 입문 제품입니다.","IngredientItemId":"(O)256","IngredientFamily":"","IngredientIntermediateKey":"","IngredientDisplayName":"토마토","OutputKind":"Finished","ProductFamily":"Tomato","InputQuantity":5,"OutputQuantity":4,"DurationMinutes":180,"RequiredCompanyLevel":1,"RequiredBrandPoints":0,"RequiresCropGenetics":false,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"wash","DisplayName":"세척","DurationMinutes":30},{"Key":"crush","DisplayName":"파쇄","DurationMinutes":50},{"Key":"heat","DisplayName":"가열","DurationMinutes":50},{"Key":"bottle","DisplayName":"병입","DurationMinutes":50}]
+  },
+  {
+    "Key":"TomatoSauce","DisplayName":"토마토소스","Description":"공용 토마토 베이스를 조리·농도조정·포장하는 외식용 소스입니다.","IngredientItemId":"","IngredientFamily":"토마토 베이스","IngredientIntermediateKey":"TomatoBase","IngredientDisplayName":"토마토 베이스","OutputKind":"Finished","ProductFamily":"Tomato","InputQuantity":4,"OutputQuantity":4,"DurationMinutes":140,"RequiredCompanyLevel":2,"RequiredBrandPoints":10,"RequiresCropGenetics":false,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"cook","DisplayName":"조리","DurationMinutes":55},{"Key":"adjust","DisplayName":"농도 조정","DurationMinutes":40},{"Key":"bottle","DisplayName":"병입","DurationMinutes":45}]
+  },
+  {
+    "Key":"TomatoKetchup","DisplayName":"토마토 케첩","Description":"토마토 베이스를 장시간 농축해 높은 단가의 소매용 케첩으로 만듭니다.","IngredientItemId":"","IngredientFamily":"토마토 베이스","IngredientIntermediateKey":"TomatoBase","IngredientDisplayName":"토마토 베이스","OutputKind":"Finished","ProductFamily":"Tomato","InputQuantity":4,"OutputQuantity":3,"DurationMinutes":180,"RequiredCompanyLevel":3,"RequiredBrandPoints":35,"RequiresCropGenetics":false,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"reduce","DisplayName":"농축","DurationMinutes":80},{"Key":"season","DisplayName":"배합","DurationMinutes":45},{"Key":"sterilize","DisplayName":"살균","DurationMinutes":30},{"Key":"bottle","DisplayName":"병입","DurationMinutes":25}]
+  },
+  {
+    "Key":"PremiumTomatoSauce","DisplayName":"프리미엄 토마토소스","Description":"A급 이상 생산을 노리는 고급 토마토 베이스 제품으로 브랜드 계약에 적합합니다.","IngredientItemId":"","IngredientFamily":"토마토 베이스","IngredientIntermediateKey":"TomatoBase","IngredientDisplayName":"토마토 베이스","OutputKind":"Finished","ProductFamily":"Tomato","InputQuantity":5,"OutputQuantity":3,"DurationMinutes":210,"RequiredCompanyLevel":4,"RequiredBrandPoints":150,"RequiresCropGenetics":false,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"slowcook","DisplayName":"저온 조리","DurationMinutes":90},{"Key":"refine","DisplayName":"미세 정제","DurationMinutes":50},{"Key":"sterilize","DisplayName":"살균","DurationMinutes":40},{"Key":"bottle","DisplayName":"프리미엄 병입","DurationMinutes":30}]
+  },
+
+  {
+    "Key":"WatermelonJuice","DisplayName":"수박주스","Description":"수박을 세척·착즙·살균하고 병입하는 대표 음료 생산공정입니다.","IngredientItemId":"","IngredientFamily":"Watermelon","IngredientIntermediateKey":"","IngredientDisplayName":"수박","OutputKind":"Finished","ProductFamily":"Watermelon","InputQuantity":6,"OutputQuantity":4,"DurationMinutes":200,"RequiredCompanyLevel":1,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"wash","DisplayName":"세척","DurationMinutes":30},{"Key":"press","DisplayName":"착즙","DurationMinutes":60},{"Key":"sterilize","DisplayName":"살균","DurationMinutes":60},{"Key":"bottle","DisplayName":"병입","DurationMinutes":50}]
+  },
+  {
+    "Key":"WatermelonConcentrate","DisplayName":"농축 수박주스","Description":"수박 원액을 농축·살균해 진한 풍미의 고단가 음료로 만듭니다.","IngredientItemId":"","IngredientFamily":"수박 원액","IngredientIntermediateKey":"WatermelonExtract","IngredientDisplayName":"수박 원액","OutputKind":"Finished","ProductFamily":"Watermelon","InputQuantity":4,"OutputQuantity":3,"DurationMinutes":170,"RequiredCompanyLevel":2,"RequiredBrandPoints":20,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"reduce","DisplayName":"농축","DurationMinutes":75},{"Key":"sterilize","DisplayName":"살균","DurationMinutes":55},{"Key":"bottle","DisplayName":"병입","DurationMinutes":40}]
+  },
+  {
+    "Key":"WatermelonGiftBox","DisplayName":"수박 선물세트","Description":"세척 수박을 선별·완충포장해 지역 특산품 선물세트로 출고합니다.","IngredientItemId":"","IngredientFamily":"세척 수박","IngredientIntermediateKey":"WatermelonWashed","IngredientDisplayName":"세척 수박","OutputKind":"Finished","ProductFamily":"Watermelon","InputQuantity":4,"OutputQuantity":1,"DurationMinutes":130,"RequiredCompanyLevel":2,"RequiredBrandPoints":25,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"상자","Stages":[{"Key":"select","DisplayName":"고급 선별","DurationMinutes":45},{"Key":"cushion","DisplayName":"완충포장","DurationMinutes":45},{"Key":"box","DisplayName":"세트 포장","DurationMinutes":40}]
+  },
+  {
+    "Key":"PremiumWatermelonDrink","DisplayName":"프리미엄 수박음료","Description":"살균 수박 베이스를 정밀 배합·병입하는 대표 프리미엄 음료입니다.","IngredientItemId":"","IngredientFamily":"살균 수박 베이스","IngredientIntermediateKey":"WatermelonSterileBase","IngredientDisplayName":"살균 수박 베이스","OutputKind":"Finished","ProductFamily":"Watermelon","InputQuantity":4,"OutputQuantity":4,"DurationMinutes":190,"RequiredCompanyLevel":4,"RequiredBrandPoints":150,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"blend","DisplayName":"정밀 배합","DurationMinutes":65},{"Key":"stabilize","DisplayName":"품질 안정화","DurationMinutes":55},{"Key":"bottle","DisplayName":"프리미엄 병입","DurationMinutes":40},{"Key":"inspect","DisplayName":"검품","DurationMinutes":30}]
+  },
+  {
+    "Key":"WatermelonSyrup","DisplayName":"수박 시럽","Description":"수박 원액을 장시간 농축해 카페 거래처용 시럽으로 생산합니다.","IngredientItemId":"","IngredientFamily":"수박 원액","IngredientIntermediateKey":"WatermelonExtract","IngredientDisplayName":"수박 원액","OutputKind":"Finished","ProductFamily":"Watermelon","InputQuantity":4,"OutputQuantity":2,"DurationMinutes":190,"RequiredCompanyLevel":3,"RequiredBrandPoints":60,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"reduce","DisplayName":"고농축","DurationMinutes":100},{"Key":"stabilize","DisplayName":"안정화","DurationMinutes":50},{"Key":"bottle","DisplayName":"병입","DurationMinutes":40}]
+  },
+
+  {
+    "Key":"ChamoeGiftSet","DisplayName":"참외 선물세트","Description":"참외를 선별·세척하고 완충포장해 선물세트로 출고합니다.","IngredientItemId":"","IngredientFamily":"KoreanMelon","IngredientIntermediateKey":"","IngredientDisplayName":"참외","OutputKind":"Finished","ProductFamily":"KoreanMelon","InputQuantity":5,"OutputQuantity":1,"DurationMinutes":150,"RequiredCompanyLevel":2,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"상자","Stages":[{"Key":"select","DisplayName":"선별","DurationMinutes":40},{"Key":"wash","DisplayName":"세척","DurationMinutes":30},{"Key":"cushion","DisplayName":"완충포장","DurationMinutes":40},{"Key":"box","DisplayName":"세트 포장","DurationMinutes":40}]
+  },
+  {
+    "Key":"ChamoeJuice","DisplayName":"참외주스","Description":"세척 참외를 착즙·여과·살균해 산뜻한 음료로 만듭니다.","IngredientItemId":"","IngredientFamily":"세척 참외","IngredientIntermediateKey":"ChamoeWashed","IngredientDisplayName":"세척 참외","OutputKind":"Finished","ProductFamily":"KoreanMelon","InputQuantity":5,"OutputQuantity":4,"DurationMinutes":165,"RequiredCompanyLevel":2,"RequiredBrandPoints":15,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"press","DisplayName":"착즙","DurationMinutes":55},{"Key":"filter","DisplayName":"여과","DurationMinutes":35},{"Key":"sterilize","DisplayName":"살균","DurationMinutes":40},{"Key":"bottle","DisplayName":"병입","DurationMinutes":35}]
+  },
+  {
+    "Key":"PremiumChamoeSet","DisplayName":"프리미엄 참외세트","Description":"세척 참외를 고급 선별·개별포장해 브랜드 대표 선물세트로 만듭니다.","IngredientItemId":"","IngredientFamily":"세척 참외","IngredientIntermediateKey":"ChamoeWashed","IngredientDisplayName":"세척 참외","OutputKind":"Finished","ProductFamily":"KoreanMelon","InputQuantity":6,"OutputQuantity":1,"DurationMinutes":180,"RequiredCompanyLevel":3,"RequiredBrandPoints":80,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"상자","Stages":[{"Key":"select","DisplayName":"프리미엄 선별","DurationMinutes":60},{"Key":"wrap","DisplayName":"개별 포장","DurationMinutes":50},{"Key":"box","DisplayName":"고급 포장","DurationMinutes":45},{"Key":"inspect","DisplayName":"검품","DurationMinutes":25}]
+  },
+  {
+    "Key":"ChamoeFreshPack","DisplayName":"참외 신선팩","Description":"선별 참외를 빠르게 소포장해 마트·식당용 신선제품으로 공급합니다.","IngredientItemId":"","IngredientFamily":"선별 참외","IngredientIntermediateKey":"ChamoeSelected","IngredientDisplayName":"선별 참외","OutputKind":"Finished","ProductFamily":"KoreanMelon","InputQuantity":4,"OutputQuantity":2,"DurationMinutes":90,"RequiredCompanyLevel":2,"RequiredBrandPoints":10,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"팩","Stages":[{"Key":"wash","DisplayName":"표면 세척","DurationMinutes":30},{"Key":"pack","DisplayName":"신선 포장","DurationMinutes":40},{"Key":"label","DisplayName":"라벨링","DurationMinutes":20}]
+  },
+  {
+    "Key":"ChamoePuree","DisplayName":"참외 퓌레","Description":"세척 참외를 파쇄·정제해 카페와 디저트 업체용 퓌레로 생산합니다.","IngredientItemId":"","IngredientFamily":"세척 참외","IngredientIntermediateKey":"ChamoeWashed","IngredientDisplayName":"세척 참외","OutputKind":"Finished","ProductFamily":"KoreanMelon","InputQuantity":5,"OutputQuantity":3,"DurationMinutes":150,"RequiredCompanyLevel":3,"RequiredBrandPoints":45,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"통","Stages":[{"Key":"crush","DisplayName":"파쇄","DurationMinutes":55},{"Key":"refine","DisplayName":"정제","DurationMinutes":50},{"Key":"pack","DisplayName":"충전 포장","DurationMinutes":45}]
+  },
+
+  {
+    "Key":"SaltedNapaCabbage","DisplayName":"절임배추","Description":"배추를 세척·절단·염장·숙성한 뒤 포장하는 대표 반가공품입니다.","IngredientItemId":"","IngredientFamily":"NapaCabbage","IngredientIntermediateKey":"","IngredientDisplayName":"배추","OutputKind":"Finished","ProductFamily":"NapaCabbage","InputQuantity":4,"OutputQuantity":2,"DurationMinutes":240,"RequiredCompanyLevel":2,"RequiredBrandPoints":0,"RequiresCropGenetics":true,"LineType":"Fermentation","OutputUnit":"팩","Stages":[{"Key":"wash","DisplayName":"세척","DurationMinutes":30},{"Key":"cut","DisplayName":"절단","DurationMinutes":40},{"Key":"salt","DisplayName":"염장","DurationMinutes":100},{"Key":"rest","DisplayName":"숙성","DurationMinutes":40},{"Key":"pack","DisplayName":"포장","DurationMinutes":30}]
+  },
+  {
+    "Key":"KimchiIngredientPack","DisplayName":"김치 원료팩","Description":"염장 배추를 규격화·소분해 김치공방용 원료팩으로 공급합니다.","IngredientItemId":"","IngredientFamily":"염장 배추","IngredientIntermediateKey":"NapaSaltedBase","IngredientDisplayName":"염장 배추","OutputKind":"Finished","ProductFamily":"NapaCabbage","InputQuantity":2,"OutputQuantity":2,"DurationMinutes":100,"RequiredCompanyLevel":2,"RequiredBrandPoints":15,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"팩","Stages":[{"Key":"portion","DisplayName":"규격 소분","DurationMinutes":40},{"Key":"drain","DisplayName":"탈수","DurationMinutes":30},{"Key":"pack","DisplayName":"밀봉 포장","DurationMinutes":30}]
+  },
+  {
+    "Key":"PremiumSaltedNapa","DisplayName":"프리미엄 절임배추","Description":"염장 배추를 저온 숙성·정밀 탈수해 고급 김치 업체용으로 생산합니다.","IngredientItemId":"","IngredientFamily":"염장 배추","IngredientIntermediateKey":"NapaSaltedBase","IngredientDisplayName":"염장 배추","OutputKind":"Finished","ProductFamily":"NapaCabbage","InputQuantity":3,"OutputQuantity":2,"DurationMinutes":220,"RequiredCompanyLevel":4,"RequiredBrandPoints":150,"RequiresCropGenetics":true,"LineType":"Fermentation","OutputUnit":"팩","Stages":[{"Key":"aging","DisplayName":"저온 숙성","DurationMinutes":110},{"Key":"drain","DisplayName":"정밀 탈수","DurationMinutes":50},{"Key":"inspect","DisplayName":"품질 선별","DurationMinutes":30},{"Key":"pack","DisplayName":"프리미엄 포장","DurationMinutes":30}]
+  },
+  {
+    "Key":"NapaExtract","DisplayName":"배추 건강즙","Description":"세척 배추를 저온 추출·여과해 건강식품 거래처용 음료로 만듭니다.","IngredientItemId":"","IngredientFamily":"세척 배추","IngredientIntermediateKey":"NapaWashed","IngredientDisplayName":"세척 배추","OutputKind":"Finished","ProductFamily":"NapaCabbage","InputQuantity":4,"OutputQuantity":3,"DurationMinutes":170,"RequiredCompanyLevel":3,"RequiredBrandPoints":60,"RequiresCropGenetics":true,"LineType":"Beverage","OutputUnit":"병","Stages":[{"Key":"extract","DisplayName":"저온 추출","DurationMinutes":80},{"Key":"filter","DisplayName":"여과","DurationMinutes":40},{"Key":"sterilize","DisplayName":"살균","DurationMinutes":25},{"Key":"bottle","DisplayName":"병입","DurationMinutes":25}]
+  },
+  {
+    "Key":"NapaFreshPack","DisplayName":"배추 신선팩","Description":"세척 배추를 규격 선별·신선포장해 마트와 식당에 빠르게 공급합니다.","IngredientItemId":"","IngredientFamily":"세척 배추","IngredientIntermediateKey":"NapaWashed","IngredientDisplayName":"세척 배추","OutputKind":"Finished","ProductFamily":"NapaCabbage","InputQuantity":3,"OutputQuantity":2,"DurationMinutes":85,"RequiredCompanyLevel":2,"RequiredBrandPoints":10,"RequiresCropGenetics":true,"LineType":"Packaging","OutputUnit":"팩","Stages":[{"Key":"select","DisplayName":"규격 선별","DurationMinutes":30},{"Key":"pack","DisplayName":"신선 포장","DurationMinutes":35},{"Key":"label","DisplayName":"라벨링","DurationMinutes":20}]
   }
 ]
