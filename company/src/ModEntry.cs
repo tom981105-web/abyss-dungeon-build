@@ -81,8 +81,9 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.8.0: the production route is intercepted before the legacy 0.7.6 controller,
-        // so the approved reference-style Production080Menu becomes the only production screen.
+        // 0.8.1: the production route has a second guard on CompanyMenu.SelectedTab.
+        // Even if CompanyMenu consumes the original click first, the next update tick replaces
+        // the legacy production tab with the approved reference-style Production080Menu.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -93,7 +94,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.8.0 loaded. Production UI rebuilt from the approved reference layout with product/process icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.8.1 loaded. Reference-style production UI route guard enabled with product/process icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
