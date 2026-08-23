@@ -17,10 +17,8 @@ internal sealed class Production080Router
 
     internal void Initialize()
     {
-        // 0.8.2: don't replace menus from ButtonPressed. Stardew still has its own click
-        // processing after SMAPI's input event, which can immediately discard a menu that was
-        // swapped too early. Instead, let CompanyMenu select the production tab normally, then
-        // wait until the mouse button is released and replace it on a later game tick.
+        // Keep the stable post-click routing introduced in 0.8.2, but route into the
+        // 0.8.4 visual rebuild instead of the older 0.8.0 production menu.
         Mod.Helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
     }
 
@@ -33,8 +31,6 @@ internal sealed class Production080Router
         if (selectedTab != 1)
             return;
 
-        // Never swap while the click that selected the tab is still held down. This prevents
-        // that same click from leaking into the newly created menu and closing/replacing it.
         if (Mod.Helper.Input.IsDown(SButton.MouseLeft))
             return;
 
@@ -43,10 +39,10 @@ internal sealed class Production080Router
 
     private void OpenProductionMenu()
     {
-        if (Game1.activeClickableMenu is Production080Menu)
+        if (Game1.activeClickableMenu is Production084Menu)
             return;
 
         Game1.playSound("bigSelect");
-        Game1.activeClickableMenu = new Production080Menu(Mod);
+        Game1.activeClickableMenu = new Production084Menu(Mod);
     }
 }
