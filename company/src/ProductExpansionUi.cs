@@ -37,7 +37,7 @@ internal sealed class ProductExpansionUi
             return;
 
         Rectangle rect = CatalogButton();
-        drawTextureBox(e.SpriteBatch, rect.X, rect.Y, rect.Width, rect.Height, new Color(51, 97, 73));
+        IClickableMenu.drawTextureBox(e.SpriteBatch, rect.X, rect.Y, rect.Width, rect.Height, new Color(51, 97, 73));
         CenterText(e.SpriteBatch, Game1.smallFont, "제품 카탈로그", rect, Color.White);
     }
 
@@ -223,7 +223,6 @@ internal sealed class ProductCatalogMenu : IClickableMenu
 
         List<ProductionRecipeDefinition> rows = Rows();
         int start = Page * 8;
-        int y = Panel.Y + 128;
         for (int row = 0; row < 8; row++)
         {
             Rectangle rect = RowRect(row);
