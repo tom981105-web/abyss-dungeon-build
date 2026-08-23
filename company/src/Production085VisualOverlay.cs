@@ -7,10 +7,10 @@ using StardewValley;
 namespace AgriculturalCompany;
 
 /// <summary>
-/// 0.8.5 visual-fidelity layer. The 0.8.4 layout remains the functional fallback,
-/// while this renderer replaces primitive machine/process/product placeholders with
-/// authored pixel-art PNG sprites and adds subtle textured timber rails.
-/// Missing assets never close the menu: the 0.8.4 drawings remain visible.
+/// 0.8.6 pixel-art cleanup layer.
+/// Uses a transparent RGBA atlas, clears legacy icon/badge pixels first, and then draws one
+/// consistent authored sprite per machine/process/product. If the atlas can't load, the 0.8.4
+/// functional UI remains visible and the menu never closes because of visual assets.
 /// </summary>
 internal sealed class Production085VisualOverlay
 {
@@ -20,7 +20,6 @@ internal sealed class Production085VisualOverlay
 
     private readonly ModEntry Mod;
     private Texture2D? VisualAtlas;
-    private Texture2D? UiTiles;
     private bool LoadTried;
     private bool Warned;
 
@@ -28,6 +27,13 @@ internal sealed class Production085VisualOverlay
     private static readonly FieldInfo? CatalogPage = typeof(ProductCatalog084Menu).GetField("Page", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly FieldInfo? CatalogFilter = typeof(ProductCatalog084Menu).GetField("Filter", BindingFlags.Instance | BindingFlags.NonPublic);
     private static readonly FieldInfo? CatalogSelected = typeof(ProductCatalog084Menu).GetField("SelectedKey", BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private static readonly Color Cream = new(250, 235, 197);
+    private static readonly Color Cream2 = new(244, 223, 177);
+    private static readonly Color Cream3 = new(247, 229, 186);
+    private static readonly Color GreenDeep = new(27, 70, 28);
+    private static readonly Color Gold = new(224, 171, 58);
+    private static readonly Color TitleInk = new(251, 221, 143);
 
     internal Production085VisualOverlay(ModEntry mod)
     {
@@ -60,10 +66,9 @@ internal sealed class Production085VisualOverlay
         LoadTried = true;
         try
         {
-            VisualAtlas = Mod.Helper.ModContent.Load<Texture2D>("assets/production_visuals_085.png");
-            UiTiles = Mod.Helper.ModContent.Load<Texture2D>("assets/ui_tiles_085.png");
+            VisualAtlas = Mod.Helper.ModContent.Load<Texture2D>("assets/production_visuals_086.png");
             if (VisualAtlas.Width < Cell * 4 || VisualAtlas.Height < Cell * 4)
-                throw new InvalidOperationException($"production_visuals_085.png size {VisualAtlas.Width}x{VisualAtlas.Height} is smaller than 384x384.");
+                throw new InvalidOperationException($"production_visuals_086.png size {VisualAtlas.Width}x{VisualAtlas.Height} is smaller than 384x384.");
             return true;
         }
         catch (Exception ex)
@@ -71,40 +76,39 @@ internal sealed class Production085VisualOverlay
             if (!Warned)
             {
                 Warned = true;
-                Mod.Monitor.Log($"0.8.5 visual assets could not be loaded; keeping the safe 0.8.4 fallback visuals. {ex.Message}", StardewModdingAPI.LogLevel.Warn);
+                Mod.Monitor.Log($"0.8.6 transparent pixel-art atlas could not be loaded; keeping the safe fallback visuals. {ex.Message}", StardewModdingAPI.LogLevel.Warn);
             }
             VisualAtlas = null;
-            UiTiles = null;
             return false;
         }
     }
 
     private void DrawProduction(SpriteBatch b, Production084Menu menu)
     {
-        var t = Transform();
-        DrawFrameTexture(b, t);
-
+        UiTransform t = Transform();
         IReadOnlyList<ProductionLineState> lines = Mod.Production.GetLines();
+
         for (int i = 0; i < Math.Min(3, lines.Count); i++)
         {
             ProductionLineState line = lines[i];
-            int sprite = line.LineType switch
+            int machineSprite = line.LineType switch
             {
                 "Fermentation" => 1,
                 "Packaging" => 2,
                 _ => 0
             };
+
             Rectangle machine = D(t, 51, 266 + i * 126, 112, 77);
-            PatchPaper(b, machine, new Color(250, 235, 197));
-            DrawSprite(b, sprite, machine, 1f);
+            Clear(b, Inflate(machine, S(t, 3)), Cream);
+            DrawSprite(b, machineSprite, machine, 1f);
 
             ProductionJob? job = Mod.Production.GetLineJob(line.Id);
             ProductionRecipeDefinition? recipe = job is null ? null : Mod.Production.FindRecipe(job.RecipeKey);
-            if (recipe is not null && TrySpecialProductIndex(recipe, out int productIndex))
+            if (recipe is not null)
             {
                 Rectangle icon = D(t, 171, 268 + i * 126, 45, 45);
-                PatchPaper(b, icon, new Color(250, 235, 197));
-                DrawSprite(b, productIndex, icon, 1f);
+                Clear(b, Inflate(icon, S(t, 4)), Cream);
+                DrawSprite(b, ProductSpriteIndex(recipe), icon, 1f);
             }
         }
 
@@ -113,12 +117,9 @@ internal sealed class Production085VisualOverlay
         if (selected is null)
             return;
 
-        if (TrySpecialProductIndex(selected, out int selectedIndex))
-        {
-            Rectangle topProduct = D(t, 593, 231, 57, 57);
-            PatchPaper(b, topProduct, new Color(244, 223, 177));
-            DrawSprite(b, selectedIndex, topProduct, 1f);
-        }
+        Rectangle topProduct = D(t, 593, 231, 57, 57);
+        Clear(b, Inflate(topProduct, S(t, 5)), Cream2);
+        DrawSprite(b, ProductSpriteIndex(selected), topProduct, 1f);
 
         ProductionJob? active = Mod.State.ProductionQueue.FirstOrDefault(p => string.Equals(p.RecipeKey, selected.Key, StringComparison.OrdinalIgnoreCase));
         DrawFlowSprites(b, t, selected, active);
@@ -140,29 +141,24 @@ internal sealed class Production085VisualOverlay
         {
             int dx = 425 + (int)MathF.Round(i * (nodeW + gap));
             Rectangle icon = D(t, dx + Math.Max(2, ((int)nodeW - 50) / 2), 322, 50, 55);
-
-            int sprite;
-            if (nodes[i].idx == -1)
-                sprite = 3;
-            else if (nodes[i].idx == 99)
-                sprite = TrySpecialProductIndex(recipe, out int finished) ? finished : 8;
-            else
-                sprite = ProcessSpriteIndex(nodes[i].name);
-
             bool current = active is not null && nodes[i].idx >= 0 && nodes[i].idx < 99 && active.CurrentStageIndex == nodes[i].idx;
-            PatchPaper(b, icon, current ? new Color(255, 226, 177) : new Color(250, 235, 197));
-            DrawSprite(b, sprite, icon, current ? 1f : 0.96f);
+
+            int sprite = nodes[i].idx switch
+            {
+                -1 => 3,
+                99 => ProductSpriteIndex(recipe),
+                _ => ProcessSpriteIndex(nodes[i].name)
+            };
+
+            Clear(b, Inflate(icon, S(t, 4)), current ? new Color(255, 226, 177) : Cream);
+            DrawSprite(b, sprite, icon, current ? 1f : 0.98f);
         }
     }
 
     private void DrawCatalog(SpriteBatch b, ProductCatalog084Menu catalog)
     {
-        var t = Transform();
-        DrawFrameTexture(b, t);
-
-        // Replace the old mixed-language heading with one clean reference-style title.
-        Rectangle title = D(t, 250, 15, 900, 64);
-        DrawPlaquePatch(b, title, "생산품 카탈로그", t.Scale);
+        UiTransform t = Transform();
+        DrawCleanCatalogTitle(b, t);
 
         int page = CatalogPage?.GetValue(catalog) is int p ? p : 0;
         int filter = CatalogFilter?.GetValue(catalog) is int f ? f : 0;
@@ -173,34 +169,33 @@ internal sealed class Production085VisualOverlay
             query = query.Where(r => string.Equals(r.OutputKind, "Intermediate", StringComparison.OrdinalIgnoreCase));
         else if (filter == 2)
             query = query.Where(r => !string.Equals(r.OutputKind, "Intermediate", StringComparison.OrdinalIgnoreCase));
+
         List<ProductionRecipeDefinition> rows = query.ToList();
         int start = page * 6;
-
         for (int i = 0; i < 6; i++)
         {
             int index = start + i;
             if (index >= rows.Count)
                 break;
+
             ProductionRecipeDefinition recipe = rows[index];
-            if (!TrySpecialProductIndex(recipe, out int sprite))
-                continue;
             int col = i % 2;
             int row = i / 2;
             Rectangle icon = D(t, 59 + col * 405, 216 + row * 168, 67, 67);
-            PatchPaper(b, icon, new Color(250, 235, 197));
-            DrawSprite(b, sprite, icon, Mod.Production.IsRecipeUnlocked(recipe, out _) ? 1f : 0.45f);
+            Clear(b, D(t, 55 + col * 405, 212 + row * 168, 80, 80), Cream);
+            DrawSprite(b, ProductSpriteIndex(recipe), icon, Mod.Production.IsRecipeUnlocked(recipe, out _) ? 1f : 0.45f);
         }
 
         ProductionRecipeDefinition? selected = Mod.Production.FindRecipe(selectedKey) ?? rows.FirstOrDefault();
-        if (selected is not null && TrySpecialProductIndex(selected, out int selectedSprite))
+        if (selected is not null)
         {
             Rectangle detail = D(t, 1082, 202, 104, 104);
-            PatchPaper(b, detail, new Color(244, 223, 177));
-            DrawSprite(b, selectedSprite, detail, Mod.Production.IsRecipeUnlocked(selected, out _) ? 1f : 0.48f);
+            Clear(b, D(t, 1076, 196, 116, 116), Cream2);
+            DrawSprite(b, ProductSpriteIndex(selected), detail, Mod.Production.IsRecipeUnlocked(selected, out _) ? 1f : 0.48f);
         }
     }
 
-    private int ProcessSpriteIndex(string? stage)
+    private static int ProcessSpriteIndex(string? stage)
     {
         string s = stage ?? "";
         if (s.Contains("세척", StringComparison.CurrentCultureIgnoreCase)) return 4;
@@ -220,51 +215,43 @@ internal sealed class Production085VisualOverlay
         return 5;
     }
 
-    private static bool TrySpecialProductIndex(ProductionRecipeDefinition recipe, out int index)
+    private static int ProductSpriteIndex(ProductionRecipeDefinition recipe)
     {
         string name = recipe.DisplayName ?? "";
         string key = recipe.Key ?? "";
-        if (name.Contains("토마토주스", StringComparison.CurrentCultureIgnoreCase) || key.Contains("TomatoJuice", StringComparison.OrdinalIgnoreCase)) { index = 9; return true; }
-        if (name.Contains("수박주스", StringComparison.CurrentCultureIgnoreCase) || key.Contains("WatermelonJuice", StringComparison.OrdinalIgnoreCase)) { index = 10; return true; }
-        if (name.Contains("선물세트", StringComparison.CurrentCultureIgnoreCase) || name.Contains("선물 세트", StringComparison.CurrentCultureIgnoreCase)) { index = 11; return true; }
-        if (name.Contains("펄프", StringComparison.CurrentCultureIgnoreCase)) { index = 12; return true; }
-        if (name.Contains("절임", StringComparison.CurrentCultureIgnoreCase) || name.Contains("피클", StringComparison.CurrentCultureIgnoreCase)) { index = 13; return true; }
-        if (name.Contains("밀가루", StringComparison.CurrentCultureIgnoreCase) || name.Contains("분말", StringComparison.CurrentCultureIgnoreCase) || name.Contains("가루", StringComparison.CurrentCultureIgnoreCase)) { index = 14; return true; }
-        index = -1;
-        return false;
+
+        if (name.Contains("토마토주스", StringComparison.CurrentCultureIgnoreCase) || key.Contains("TomatoJuice", StringComparison.OrdinalIgnoreCase)) return 9;
+        if (name.Contains("수박주스", StringComparison.CurrentCultureIgnoreCase) || key.Contains("WatermelonJuice", StringComparison.OrdinalIgnoreCase)) return 10;
+        if (name.Contains("잼", StringComparison.CurrentCultureIgnoreCase) || key.Contains("Jam", StringComparison.OrdinalIgnoreCase)) return 15;
+        if (name.Contains("선물세트", StringComparison.CurrentCultureIgnoreCase) || name.Contains("선물 세트", StringComparison.CurrentCultureIgnoreCase)) return 11;
+        if (name.Contains("펄프", StringComparison.CurrentCultureIgnoreCase)) return 12;
+        if (name.Contains("절임", StringComparison.CurrentCultureIgnoreCase) || name.Contains("피클", StringComparison.CurrentCultureIgnoreCase)) return 13;
+        if (name.Contains("밀가루", StringComparison.CurrentCultureIgnoreCase)
+            || name.Contains("분말", StringComparison.CurrentCultureIgnoreCase)
+            || name.Contains("가루", StringComparison.CurrentCultureIgnoreCase)) return 14;
+        if (name.Contains("주스", StringComparison.CurrentCultureIgnoreCase) || name.Contains("원액", StringComparison.CurrentCultureIgnoreCase)) return 8;
+        if (string.Equals(recipe.OutputKind, "Intermediate", StringComparison.OrdinalIgnoreCase))
+        {
+            if (name.Contains("세척", StringComparison.CurrentCultureIgnoreCase)) return 3;
+            if (name.Contains("베이스", StringComparison.CurrentCultureIgnoreCase)) return 6;
+            return 5;
+        }
+        return 8;
     }
 
-    private void DrawFrameTexture(SpriteBatch b, UiTransform t)
+    private void DrawCleanCatalogTitle(SpriteBatch b, UiTransform t)
     {
-        if (UiTiles is null)
-            return;
-        DrawTiled(b, D(t, 0, 0, 1400, 17), 0, Color.White * 0.72f);
-        DrawTiled(b, D(t, 0, 803, 1400, 17), 0, Color.White * 0.72f);
-        DrawTiled(b, D(t, 0, 17, 18, 786), 0, Color.White * 0.72f);
-        DrawTiled(b, D(t, 1382, 17, 18, 786), 0, Color.White * 0.72f);
-    }
+        Rectangle outer = D(t, 250, 15, 900, 64);
+        Fill(b, outer, new Color(62, 36, 18));
+        Fill(b, Inset(outer, S(t, 3)), Gold);
+        Fill(b, Inset(outer, S(t, 7)), GreenDeep);
 
-    private void DrawPlaquePatch(SpriteBatch b, Rectangle rect, string text, float scale)
-    {
-        Color woodDeep = new(62, 36, 18);
-        Color gold = new(224, 171, 58);
-        Fill(b, rect, woodDeep);
-        Rectangle mid = Inset(rect, Math.Max(2, (int)MathF.Round(3 * scale)));
-        Fill(b, mid, gold);
-        Rectangle inner = Inset(rect, Math.Max(3, (int)MathF.Round(7 * scale)));
-        if (UiTiles is not null) DrawTiled(b, inner, 2, Color.White);
-        else Fill(b, inner, new Color(27, 70, 28));
-        float textScale = Math.Max(0.2f, scale * 0.96f);
+        float textScale = Math.Max(0.2f, t.Scale * 0.96f);
+        const string text = "생산품 카탈로그";
         Vector2 size = Game1.dialogueFont.MeasureString(text) * textScale;
-        b.DrawString(Game1.dialogueFont, text, new Vector2(rect.X + (rect.Width - size.X) / 2f, rect.Y + (rect.Height - size.Y) / 2f), new Color(251, 221, 143), 0f, Vector2.Zero, textScale, SpriteEffects.None, 1f);
-    }
-
-    private void PatchPaper(SpriteBatch b, Rectangle rect, Color fallback)
-    {
-        if (UiTiles is not null)
-            DrawTiled(b, rect, 1, Color.White);
-        else
-            Fill(b, rect, fallback);
+        b.DrawString(Game1.dialogueFont, text,
+            new Vector2(outer.X + (outer.Width - size.X) / 2f, outer.Y + (outer.Height - size.Y) / 2f),
+            TitleInk, 0f, Vector2.Zero, textScale, SpriteEffects.None, 1f);
     }
 
     private void DrawSprite(SpriteBatch b, int index, Rectangle dest, float alpha)
@@ -273,23 +260,6 @@ internal sealed class Production085VisualOverlay
             return;
         Rectangle src = new((index % 4) * Cell, (index / 4) * Cell, Cell, Cell);
         b.Draw(VisualAtlas, dest, src, Color.White * alpha, 0f, Vector2.Zero, SpriteEffects.None, 1f);
-    }
-
-    private void DrawTiled(SpriteBatch b, Rectangle dest, int tile, Color tint)
-    {
-        if (UiTiles is null)
-            return;
-        Rectangle srcBase = new(tile * 64, 0, 64, 64);
-        for (int y = dest.Y; y < dest.Bottom; y += 64)
-        {
-            for (int x = dest.X; x < dest.Right; x += 64)
-            {
-                int w = Math.Min(64, dest.Right - x);
-                int h = Math.Min(64, dest.Bottom - y);
-                Rectangle src = new(srcBase.X, srcBase.Y, w, h);
-                b.Draw(UiTiles, new Rectangle(x, y, w, h), src, tint);
-            }
-        }
     }
 
     private static UiTransform Transform()
@@ -303,14 +273,19 @@ internal sealed class Production085VisualOverlay
         return new UiTransform((uiW - actualW) / 2, (uiH - actualH) / 2, scale);
     }
 
+    private static int S(UiTransform t, int value) => Math.Max(1, (int)MathF.Round(value * t.Scale));
+
     private static Rectangle D(UiTransform t, int x, int y, int w, int h)
         => new(t.X + (int)MathF.Round(x * t.Scale), t.Y + (int)MathF.Round(y * t.Scale), Math.Max(1, (int)MathF.Round(w * t.Scale)), Math.Max(1, (int)MathF.Round(h * t.Scale)));
 
     private static Rectangle Inset(Rectangle r, int n)
         => new(r.X + n, r.Y + n, Math.Max(1, r.Width - n * 2), Math.Max(1, r.Height - n * 2));
 
-    private static void Fill(SpriteBatch b, Rectangle r, Color c)
-        => b.Draw(Game1.fadeToBlackRect, r, c);
+    private static Rectangle Inflate(Rectangle r, int n)
+        => new(r.X - n, r.Y - n, r.Width + n * 2, r.Height + n * 2);
+
+    private static void Clear(SpriteBatch b, Rectangle r, Color c) => Fill(b, r, c);
+    private static void Fill(SpriteBatch b, Rectangle r, Color c) => b.Draw(Game1.fadeToBlackRect, r, c);
 
     private readonly record struct UiTransform(int X, int Y, float Scale);
 }
