@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
 namespace WatermelonGeneticsCore;
