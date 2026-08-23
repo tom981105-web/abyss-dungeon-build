@@ -1,14 +1,11 @@
-using System.Reflection;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewValley;
 
 namespace AgriculturalCompany;
 
 public sealed class ModEntry : Mod
 {
     private const string SaveKey = "company-state";
-    private static readonly FieldInfo? CompanyMenuSelectedTabField = typeof(CompanyMenu).GetField("SelectedTab", BindingFlags.Instance | BindingFlags.NonPublic);
 
     internal ModConfig Config { get; private set; } = new();
     internal CompanySaveData State { get; private set; } = new();
@@ -42,7 +39,6 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
-        helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         Monitor.Log($"Agricultural Company 0.5 loaded. Persistent client relationships + contracts + equal-partner multiplayer enabled. {ClientProfiles.Count} clients / {ContractTemplates.Count} contract templates. F7 opens management.", LogLevel.Info);
@@ -79,16 +75,6 @@ public sealed class ModEntry : Mod
         Contracts.EnsureState();
         Contracts.OnDayStarted();
         Multiplayer.OnDayStarted();
-    }
-
-    private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
-    {
-        if (!Context.IsWorldReady || Game1.activeClickableMenu is not CompanyMenu menu)
-            return;
-
-        // 0.5 activates the existing client sidebar slot without changing the 0.4 menu's warehouse/contract behavior.
-        if (CompanyMenuSelectedTabField?.GetValue(menu) is int selectedTab && selectedTab == 4)
-            Game1.activeClickableMenu = new ClientMenu(this);
     }
 
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
