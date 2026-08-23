@@ -34,12 +34,18 @@ jobs:
           dotnet build src/WatermelonGenetics.csproj -c Release /p:GamePath="$GAME_PATH" 2>&1 | tee build.log
           STATUS=${PIPESTATUS[0]}
           mkdir -p dist
+          rm -rf dist/chunks
           cp build.log dist/build.log
           if [ "$STATUS" -eq 0 ] && [ -f src/bin/Release/net6.0/WatermelonGenetics.dll ]; then
             cp src/bin/Release/net6.0/WatermelonGenetics.dll dist/WatermelonGenetics.dll
             echo success > dist/status.txt
+            mkdir -p dist/chunks
+            base64 -w 0 dist/WatermelonGenetics.dll > dist/WatermelonGenetics.dll.b64
+            split -b 8000 -d -a 3 dist/WatermelonGenetics.dll.b64 dist/chunks/chunk-
+            wc -c dist/WatermelonGenetics.dll > dist/dll-size.txt
+            sha256sum dist/WatermelonGenetics.dll > dist/dll-sha256.txt
           else
-            rm -f dist/WatermelonGenetics.dll
+            rm -f dist/WatermelonGenetics.dll dist/WatermelonGenetics.dll.b64
             echo failure > dist/status.txt
           fi
           echo "status=$STATUS" >> "$GITHUB_OUTPUT"
@@ -51,7 +57,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f dist/build.log dist/status.txt
-          if [ -f dist/WatermelonGenetics.dll ]; then git add -f dist/WatermelonGenetics.dll; fi
+          if [ -f dist/WatermelonGenetics.dll ]; then
+            git add -f dist/WatermelonGenetics.dll dist/chunks dist/dll-size.txt dist/dll-sha256.txt
+          fi
           git commit -m "Store Watermelon Genetics build output [skip ci]" || true
           git push
 
