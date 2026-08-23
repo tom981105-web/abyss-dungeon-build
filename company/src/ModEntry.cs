@@ -13,6 +13,7 @@ public sealed class ModEntry : Mod
     internal List<ProductionRecipeDefinition> Recipes { get; private set; } = new();
     internal CompanyCore Company { get; private set; } = null!;
     internal ProductionCore Production { get; private set; } = null!;
+    internal MultiplayerCore Multiplayer { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
@@ -22,22 +23,28 @@ public sealed class ModEntry : Mod
 
         Company = new CompanyCore(this);
         Production = new ProductionCore(this);
+        Multiplayer = new MultiplayerCore(this);
         Company.Initialize(helper);
         Production.Initialize();
+        Multiplayer.Initialize();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.3 loaded. Warehouse + production enabled. {Recipes.Count} production recipes available. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.3.1 loaded. Multiplayer host authority enabled. {Recipes.Count} production recipes available. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
-        State = Helper.Data.ReadSaveData<CompanySaveData>(SaveKey) ?? new CompanySaveData();
+        State = Context.IsMainPlayer
+            ? Helper.Data.ReadSaveData<CompanySaveData>(SaveKey) ?? new CompanySaveData()
+            : new CompanySaveData();
+
         Company.EnsureState();
         Production.EnsureState();
+        Multiplayer.OnSaveLoaded();
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
@@ -50,12 +57,25 @@ public sealed class ModEntry : Mod
     {
         if (!Context.IsWorldReady)
             return;
+
         Company.EnsureState();
         Production.EnsureState();
+
+        if (Context.IsMainPlayer)
+            Multiplayer.BroadcastState();
+        else
+            Multiplayer.RequestSync();
     }
 
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
     {
         Company.HandleButton(e);
+    }
+
+    internal void ApplyNetworkState(CompanySaveData state)
+    {
+        State = state ?? new CompanySaveData();
+        Company.EnsureState();
+        Production.EnsureState();
     }
 }
