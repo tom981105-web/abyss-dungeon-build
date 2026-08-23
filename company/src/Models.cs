@@ -26,26 +26,30 @@ public sealed class CompanySaveData
     public long LifetimeDeposited { get; set; }
     public long LifetimeWithdrawn { get; set; }
 
+    // Production 2.0 keeps the old fields for forward save compatibility.
     public List<ProductionJob> ProductionQueue { get; set; } = new();
     public Dictionary<string, ProductStockEntry> FinishedGoods { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public long LifetimeProductionBatches { get; set; }
     public long LifetimeFinishedGoods { get; set; }
+    public List<ProductionLineState> ProductionLines { get; set; } = new();
+    public List<ProductionPlanEntry> ProductionPlans { get; set; } = new();
+    public Dictionary<string, IntermediateStockEntry> IntermediateStock { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public long LifetimeIntermediateUnits { get; set; }
 
-    // 0.4 contracts. Defaults keep older saves forward-compatible.
+    // 0.4 contracts.
     public string ContractBoardDayKey { get; set; } = "";
     public List<CompanyContract> AvailableContracts { get; set; } = new();
     public List<CompanyContract> AcceptedContracts { get; set; } = new();
 
-    // 0.5 persistent client relationships. Shared by every co-owner in multiplayer.
+    // 0.5 persistent client relationships.
     public Dictionary<string, ClientRelationship> ClientRelationships { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    // 0.6 brand progression. Brand points represent consumer awareness, separate from company reputation and client trust.
+    // 0.6 brand progression.
     public int BrandPoints { get; set; }
     public int BrandCampaignsRun { get; set; }
     public int LastBrandCampaignDayNumber { get; set; }
     public Dictionary<string, ProductBrandStats> ProductBrands { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    // Multiplayer snapshot revision.
     public long NetworkRevision { get; set; }
 }
 
@@ -75,6 +79,36 @@ public sealed class ProductionRecipeDefinition
     public int OutputQuantity { get; set; } = 1;
     public int DurationMinutes { get; set; } = 60;
     public int RequiredCompanyLevel { get; set; } = 1;
+    public string LineType { get; set; } = "Beverage";
+    public string OutputUnit { get; set; } = "개";
+    public List<ProductionStageDefinition> Stages { get; set; } = new();
+}
+
+public sealed class ProductionStageDefinition
+{
+    public string Key { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public int DurationMinutes { get; set; } = 30;
+    public string IntermediateKey { get; set; } = "";
+    public string IntermediateDisplayName { get; set; } = "";
+}
+
+public sealed class ProductionLineState
+{
+    public string Id { get; set; } = "";
+    public string LineType { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public int BaseEfficiency { get; set; } = 88;
+    public int Level { get; set; } = 1;
+}
+
+public sealed class ProductionPlanEntry
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string RecipeKey { get; set; } = "";
+    public int BatchCount { get; set; } = 1;
+    public int Priority { get; set; }
+    public int CreatedDayNumber { get; set; }
 }
 
 public sealed class ProductionJob
@@ -83,14 +117,35 @@ public sealed class ProductionJob
     public string RecipeKey { get; set; } = "";
     public int BatchCount { get; set; } = 1;
     public int OutputQuality { get; set; }
+    public string OutputGrade { get; set; } = "C";
     public int RemainingMinutes { get; set; }
     public int TotalMinutes { get; set; }
+    public string LineId { get; set; } = "";
+    public int CurrentStageIndex { get; set; }
+    public int StageRemainingMinutes { get; set; }
+    public int StageTotalMinutes { get; set; }
+    public int EfficiencyPercent { get; set; } = 88;
+    public int InputQualityScore { get; set; } = 55;
+    public int EstimatedOutputQuantity { get; set; }
+    public bool AwaitingStageAdvance { get; set; }
+    public string BufferedIntermediateKey { get; set; } = "";
+    public int BufferedIntermediateQuantity { get; set; }
+}
+
+public sealed class IntermediateStockEntry
+{
+    public string Key { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public int Quality { get; set; }
+    public string Grade { get; set; } = "C";
+    public int Quantity { get; set; }
 }
 
 public sealed class ProductStockEntry
 {
     public string ProductKey { get; set; } = "";
     public int Quality { get; set; }
+    public string Grade { get; set; } = "";
     public int Quantity { get; set; }
 }
 
