@@ -60,6 +60,17 @@ internal sealed class MultiplayerCore
         Mod.Helper.Multiplayer.SendMessage(Mod.State, MessageStateSnapshot, modIDs: new[] { Mod.ModManifest.UniqueID }, playerIDs: new[] { playerId });
     }
 
+    internal void BroadcastNotice(string message)
+    {
+        if (!Context.IsWorldReady || !Context.IsMainPlayer || !Context.IsMultiplayer || string.IsNullOrWhiteSpace(message))
+            return;
+
+        Mod.Helper.Multiplayer.SendMessage(
+            new OperationResultMessage { Success = true, Message = message },
+            MessageOperationResult,
+            modIDs: new[] { Mod.ModManifest.UniqueID });
+    }
+
     internal void ReportHarvest(string itemId, int amount)
     {
         if (amount <= 0)
@@ -125,6 +136,9 @@ internal sealed class MultiplayerCore
             if (Context.IsMainPlayer)
                 return;
 
+            if (Game1.MasterPlayer is not null && e.FromPlayerID != Game1.MasterPlayer.UniqueMultiplayerID)
+                return;
+
             CompanySaveData incoming = e.ReadAs<CompanySaveData>();
             if (incoming.NetworkRevision < Mod.State.NetworkRevision)
                 return;
@@ -169,8 +183,13 @@ internal sealed class MultiplayerCore
 
         if (e.Type == MessageOperationResult && !Context.IsMainPlayer)
         {
+            if (Game1.MasterPlayer is not null && e.FromPlayerID != Game1.MasterPlayer.UniqueMultiplayerID)
+                return;
+
             OperationResultMessage result = e.ReadAs<OperationResultMessage>();
-            Game1.addHUDMessage(new HUDMessage(result.Message, result.Success ? HUDMessage.newQuest_type : HUDMessage.error_type));
+            Game1.addHUDMessage(result.Success
+                ? new HUDMessage(result.Message)
+                : new HUDMessage(result.Message, HUDMessage.error_type));
         }
     }
 
