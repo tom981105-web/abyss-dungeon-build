@@ -19,6 +19,7 @@ public sealed class ModEntry : Mod
     internal ClientCore Clients { get; private set; } = null!;
     internal BrandCore Brand { get; private set; } = null!;
     internal MultiplayerCore Multiplayer { get; private set; } = null!;
+    internal Production2Ui ProductionUi { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
@@ -34,17 +35,20 @@ public sealed class ModEntry : Mod
         Brand = new BrandCore(this);
         Contracts = new ContractCore(this);
         Multiplayer = new MultiplayerCore(this);
+        ProductionUi = new Production2Ui(this);
+
         Company.Initialize(helper);
         Production.Initialize();
         Brand.Initialize();
         Multiplayer.Initialize();
+        ProductionUi.Initialize();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.6 loaded. Brand progression + product reputation + marketing campaigns + persistent clients enabled. {ClientProfiles.Count} clients / {ContractTemplates.Count} contract templates. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.7 loaded. Production 2.0 lines + multi-stage processing + production planning + intermediates + graded finished goods enabled. {Recipes.Count} production recipes. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)

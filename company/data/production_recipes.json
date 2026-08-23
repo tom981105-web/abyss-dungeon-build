@@ -2,45 +2,78 @@
   {
     "Key": "TomatoJuice",
     "DisplayName": "토마토주스",
-    "Description": "기본 스타듀 토마토를 착즙해 만드는 첫 독립 생산라인입니다.",
+    "Description": "토마토를 세척하고 파쇄한 뒤 가열·병입하는 음료 생산공정입니다.",
     "IngredientItemId": "(O)256",
     "IngredientFamily": "",
-    "InputQuantity": 3,
-    "OutputQuantity": 2,
-    "DurationMinutes": 60,
-    "RequiredCompanyLevel": 1
+    "InputQuantity": 5,
+    "OutputQuantity": 4,
+    "DurationMinutes": 180,
+    "RequiredCompanyLevel": 1,
+    "LineType": "Beverage",
+    "OutputUnit": "병",
+    "Stages": [
+      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedTomato","IntermediateDisplayName":"세척 토마토"},
+      {"Key":"crush","DisplayName":"파쇄","DurationMinutes":50,"IntermediateKey":"TomatoPulp","IntermediateDisplayName":"토마토 펄프"},
+      {"Key":"heat","DisplayName":"가열","DurationMinutes":50,"IntermediateKey":"TomatoBase","IntermediateDisplayName":"토마토 베이스"},
+      {"Key":"bottle","DisplayName":"병입","DurationMinutes":50,"IntermediateKey":"","IntermediateDisplayName":""}
+    ]
   },
   {
     "Key": "WatermelonJuice",
     "DisplayName": "수박주스",
-    "Description": "수박 계열 원물 2개를 세척·절단·착즙해 병입합니다.",
+    "Description": "수박을 세척·착즙·살균하고 병입하는 대표 음료 생산공정입니다.",
     "IngredientItemId": "",
     "IngredientFamily": "Watermelon",
-    "InputQuantity": 2,
-    "OutputQuantity": 2,
-    "DurationMinutes": 80,
-    "RequiredCompanyLevel": 1
+    "InputQuantity": 6,
+    "OutputQuantity": 4,
+    "DurationMinutes": 200,
+    "RequiredCompanyLevel": 1,
+    "LineType": "Beverage",
+    "OutputUnit": "병",
+    "Stages": [
+      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedWatermelon","IntermediateDisplayName":"세척 수박"},
+      {"Key":"press","DisplayName":"착즙","DurationMinutes":60,"IntermediateKey":"WatermelonExtract","IntermediateDisplayName":"수박 원액"},
+      {"Key":"sterilize","DisplayName":"살균","DurationMinutes":60,"IntermediateKey":"SterilizedWatermelonBase","IntermediateDisplayName":"살균 수박 원액"},
+      {"Key":"bottle","DisplayName":"병입","DurationMinutes":50,"IntermediateKey":"","IntermediateDisplayName":""}
+    ]
   },
   {
     "Key": "ChamoeGiftSet",
     "DisplayName": "참외 선물세트",
-    "Description": "참외 계열 원물을 선별해 프리미엄 포장 세트로 만듭니다.",
+    "Description": "참외를 선별·세척하고 완충포장해 프리미엄 선물세트로 출고합니다.",
     "IngredientItemId": "",
     "IngredientFamily": "KoreanMelon",
     "InputQuantity": 5,
     "OutputQuantity": 1,
-    "DurationMinutes": 100,
-    "RequiredCompanyLevel": 2
+    "DurationMinutes": 150,
+    "RequiredCompanyLevel": 2,
+    "LineType": "Packaging",
+    "OutputUnit": "상자",
+    "Stages": [
+      {"Key":"select","DisplayName":"선별","DurationMinutes":40,"IntermediateKey":"SelectedChamoe","IntermediateDisplayName":"선별 참외"},
+      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedChamoe","IntermediateDisplayName":"세척 참외"},
+      {"Key":"cushion","DisplayName":"완충포장","DurationMinutes":40,"IntermediateKey":"PackedChamoe","IntermediateDisplayName":"포장 준비 참외"},
+      {"Key":"box","DisplayName":"세트 포장","DurationMinutes":40,"IntermediateKey":"","IntermediateDisplayName":""}
+    ]
   },
   {
     "Key": "SaltedNapaCabbage",
     "DisplayName": "절임배추",
-    "Description": "배추를 선별·절임해 김치 생산 전 단계의 반가공품으로 만듭니다.",
+    "Description": "배추를 세척·절단·염장·숙성한 뒤 포장하는 반가공 생산공정입니다.",
     "IngredientItemId": "",
     "IngredientFamily": "NapaCabbage",
     "InputQuantity": 4,
     "OutputQuantity": 2,
-    "DurationMinutes": 120,
-    "RequiredCompanyLevel": 2
+    "DurationMinutes": 240,
+    "RequiredCompanyLevel": 2,
+    "LineType": "Fermentation",
+    "OutputUnit": "팩",
+    "Stages": [
+      {"Key":"wash","DisplayName":"세척","DurationMinutes":30,"IntermediateKey":"WashedNapa","IntermediateDisplayName":"세척 배추"},
+      {"Key":"cut","DisplayName":"절단","DurationMinutes":40,"IntermediateKey":"CutNapa","IntermediateDisplayName":"절단 배추"},
+      {"Key":"salt","DisplayName":"염장","DurationMinutes":100,"IntermediateKey":"SaltedNapa","IntermediateDisplayName":"염장 배추"},
+      {"Key":"rest","DisplayName":"숙성","DurationMinutes":40,"IntermediateKey":"RestedNapa","IntermediateDisplayName":"숙성 배추"},
+      {"Key":"pack","DisplayName":"포장","DurationMinutes":30,"IntermediateKey":"","IntermediateDisplayName":""}
+    ]
   }
 ]

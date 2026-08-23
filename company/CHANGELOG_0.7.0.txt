@@ -1,0 +1,16 @@
+Agricultural Company v0.7.0 — Production 2.0
+
+- Replaces the simple production queue with three typed production lines: Beverage, Packaging, Fermentation.
+- Adds a full-screen Production 2.0 management UI launched from F7 > 생산.
+- Adds multi-stage recipes with visible current stage and stage-by-stage timers.
+- Adds persistent production plans with priority reordering and automatic dispatch to compatible idle lines.
+- Adds intermediate stock generated between process stages and consumed by the next stage.
+- Adds line efficiency and raw-material quality scoring.
+- Adds C/B/A/S finished-product grades while retaining Stardew quality compatibility for contracts.
+- Adds expected output, expected grade, expected duration, quality mix, line progress, plan queue, intermediate inventory, and finished-goods inventory to the new UI.
+- Keeps all production state in shared company save data for multiplayer co-owners.
+- Farmhand production-plan requests continue to be serialized through shared company state.
+- Existing v0.1-v0.6 saves migrate through default Production 2.0 fields.
+
+Runtime note:
+This release is compile-verified through Stardew Valley + SMAPI reference assemblies. In-game single-player/multiplayer visual QA remains pending until a PC runtime check is available.
