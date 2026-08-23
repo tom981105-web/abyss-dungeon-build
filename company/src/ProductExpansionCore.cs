@@ -23,12 +23,16 @@ internal sealed class ProductExpansionCore
         if (Mod.Recipes.Count <= 1)
             return;
 
+        // 0.7.3 keeps the default experience vanilla-first. Optional Crop Genetics products join later.
         static int FeaturedOrder(string key) => key switch
         {
             "TomatoJuice" => 0,
-            "WatermelonJuice" => 1,
-            "ChamoeGiftSet" => 2,
-            "SaltedNapaCabbage" => 3,
+            "ParsnipPicklePack" => 1,
+            "BlueberryJuice" => 2,
+            "WheatFlourPack" => 3,
+            "WatermelonJuice" => 20,
+            "ChamoeGiftSet" => 21,
+            "SaltedNapaCabbage" => 22,
             _ => 100
         };
 
@@ -36,6 +40,7 @@ internal sealed class ProductExpansionCore
             .OrderBy(p => FeaturedOrder(p.Key))
             .ThenBy(p => string.Equals(p.OutputKind, "Intermediate", StringComparison.OrdinalIgnoreCase) ? 2 : 1)
             .ThenBy(p => p.RequiredCompanyLevel)
+            .ThenBy(p => p.RequiredBrandPoints)
             .ThenBy(p => p.DisplayName, StringComparer.CurrentCulture)
             .ToList();
 
@@ -79,7 +84,7 @@ internal sealed class ProductExpansionCore
         if (existingExtras >= desiredExtra)
             return;
 
-        int seed = HashCode.Combine(today, Mod.State.Level, Mod.State.BrandPoints, Mod.State.Reputation, 722);
+        int seed = HashCode.Combine(today, Mod.State.Level, Mod.State.BrandPoints, Mod.State.Reputation, 723);
         Random random = new(seed);
         HashSet<string> existingProducts = Mod.State.AvailableContracts.Select(p => p.ProductKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -133,6 +138,8 @@ internal sealed class ProductExpansionCore
     private static int BaseQuantity(ProductionRecipeDefinition recipe)
     {
         if (recipe.RequiredBrandPoints >= 150) return 4;
+        if (recipe.ProductFamily == "VanillaFlower") return 4;
+        if (recipe.ProductFamily == "VanillaSpecial") return 4;
         if (recipe.LineType == "Packaging") return 6;
         if (recipe.LineType == "Fermentation") return 10;
         return 10;
@@ -146,6 +153,12 @@ internal sealed class ProductExpansionCore
             "Watermelon" => 320,
             "KoreanMelon" => 360,
             "NapaCabbage" => 290,
+            "VanillaVegetable" => 210,
+            "VanillaFruit" => 270,
+            "VanillaFlower" => 300,
+            "VanillaGrain" => 190,
+            "VanillaBeverage" => 280,
+            "VanillaSpecial" => 420,
             _ => 220
         };
         value += Math.Max(0, recipe.RequiredCompanyLevel - 1) * 45;
@@ -164,6 +177,12 @@ internal sealed class ProductExpansionCore
             "Watermelon" => ("CoastalCafe", "해안 카페"),
             "KoreanMelon" => ("RegionalSpecialtyStore", "지역 특산품 상회"),
             "NapaCabbage" => ("ValleyKimchiWorkshop", "계곡 김치공방"),
+            "VanillaVegetable" => ("ValleyDiner", "계곡 식당"),
+            "VanillaFruit" => ("CoastalCafe", "해안 카페"),
+            "VanillaFlower" => ("RegionalSpecialtyStore", "지역 특산품 상회"),
+            "VanillaGrain" => ("PelicanMarket", "펠리컨 마트"),
+            "VanillaBeverage" => ("CoastalCafe", "해안 카페"),
+            "VanillaSpecial" => ("ZuzuFoodDistribution", "주주시티 식품유통"),
             _ => ("PelicanMarket", "펠리컨 마트")
         };
     }
