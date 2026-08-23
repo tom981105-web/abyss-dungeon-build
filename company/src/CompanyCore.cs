@@ -1,6 +1,7 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using SObject = StardewValley.Object;
 
 namespace AgriculturalCompany;
 
@@ -43,22 +44,22 @@ internal sealed class CompanyCore
             return;
 
         foreach (Item item in e.Added)
-            Track(item, item.Stack);
+            TrackProduction(item, item.Stack);
 
         foreach (var change in e.QuantityChanged)
         {
             int gained = change.NewSize - change.OldSize;
             if (gained > 0)
-                Track(change.Item, gained);
+                TrackProduction(change.Item, gained);
         }
     }
 
-    private void Track(Item item, int amount)
+    private void TrackProduction(Item item, int amount)
     {
         if (amount <= 0)
             return;
 
-        TrackedCropDefinition? crop = Mod.Crops.FirstOrDefault(p => string.Equals(p.ItemId, item.QualifiedItemId, StringComparison.OrdinalIgnoreCase));
+        TrackedCropDefinition? crop = FindCrop(item.QualifiedItemId);
         if (crop is null)
             return;
 
@@ -82,6 +83,11 @@ internal sealed class CompanyCore
         if (!Context.IsWorldReady)
             return;
 
+        Mod.State.TodayHarvest ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        Mod.State.SeasonHarvest ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        Mod.State.LifetimeHarvest ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        Mod.State.Warehouse ??= new Dictionary<string, WarehouseStockEntry>(StringComparer.OrdinalIgnoreCase);
+
         if (string.IsNullOrWhiteSpace(Mod.State.CompanyName))
         {
             string farm = Game1.player.farmName.Value;
@@ -103,8 +109,17 @@ internal sealed class CompanyCore
             Mod.State.SeasonKey = seasonKey;
         }
 
+        foreach ((string key, WarehouseStockEntry entry) in Mod.State.Warehouse.ToList())
+        {
+            if (entry is null || string.IsNullOrWhiteSpace(entry.ItemId) || entry.Quantity <= 0)
+                Mod.State.Warehouse.Remove(key);
+        }
+
         UpdateLevel(Mod.State);
     }
+
+    internal TrackedCropDefinition? FindCrop(string itemId)
+        => Mod.Crops.FirstOrDefault(p => string.Equals(p.ItemId, itemId, StringComparison.OrdinalIgnoreCase));
 
     internal int GetTotal(Dictionary<string, int> source, string? family = null)
     {
@@ -118,6 +133,150 @@ internal sealed class CompanyCore
         }
         return total;
     }
+
+    internal int GetWarehouseCapacity() => Mod.State.Level switch
+    {
+        <= 1 => 200,
+        2 => 500,
+        3 => 1000,
+        4 => 2500,
+        _ => 5000
+    };
+
+    internal int GetWarehouseUsed()
+        => Mod.State.Warehouse.Values.Where(p => p is not null).Sum(p => Math.Max(0, p.Quantity));
+
+    internal int GetWarehouseQuantity(string itemId)
+        => Mod.State.Warehouse.Values
+            .Where(p => p is not null && string.Equals(p.ItemId, itemId, StringComparison.OrdinalIgnoreCase))
+            .Sum(p => Math.Max(0, p.Quantity));
+
+    internal int GetWarehouseQuantity(string itemId, int quality)
+        => Mod.State.Warehouse.TryGetValue(WarehouseKey(itemId, quality), out WarehouseStockEntry? entry)
+            ? Math.Max(0, entry.Quantity)
+            : 0;
+
+    internal int GetPlayerQuantity(string itemId)
+        => Game1.player.Items.Where(p => p is not null && string.Equals(p.QualifiedItemId, itemId, StringComparison.OrdinalIgnoreCase)).Sum(p => p?.Stack ?? 0);
+
+    internal int DepositFromPlayer(string itemId, int requested)
+    {
+        EnsureState();
+        if (requested <= 0 || FindCrop(itemId) is null)
+            return 0;
+
+        int remainingCapacity = Math.Max(0, GetWarehouseCapacity() - GetWarehouseUsed());
+        int remaining = Math.Min(requested, remainingCapacity);
+        if (remaining <= 0)
+            return 0;
+
+        int moved = 0;
+        for (int i = Game1.player.Items.Count - 1; i >= 0 && remaining > 0; i--)
+        {
+            Item? item = Game1.player.Items[i];
+            if (item is null || !string.Equals(item.QualifiedItemId, itemId, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            int quality = item is SObject obj ? obj.Quality : 0;
+            int take = Math.Min(remaining, item.Stack);
+            AddWarehouse(itemId, quality, take);
+            item.Stack -= take;
+            remaining -= take;
+            moved += take;
+
+            if (item.Stack <= 0)
+                Game1.player.Items[i] = null;
+        }
+
+        Mod.State.LifetimeDeposited += moved;
+        return moved;
+    }
+
+    internal int DepositAllFromPlayer(string itemId)
+        => DepositFromPlayer(itemId, int.MaxValue);
+
+    internal int WithdrawToPlayer(string itemId, int requested)
+    {
+        EnsureState();
+        if (requested <= 0)
+            return 0;
+
+        int remaining = requested;
+        int moved = 0;
+        List<WarehouseStockEntry> entries = Mod.State.Warehouse.Values
+            .Where(p => p is not null && p.Quantity > 0 && string.Equals(p.ItemId, itemId, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(p => p.Quality)
+            .ToList();
+
+        foreach (WarehouseStockEntry entry in entries)
+        {
+            while (entry.Quantity > 0 && remaining > 0)
+            {
+                Item item = ItemRegistry.Create(entry.ItemId, 1, entry.Quality);
+                if (!Game1.player.addItemToInventoryBool(item))
+                {
+                    Mod.State.LifetimeWithdrawn += moved;
+                    CleanupWarehouse();
+                    return moved;
+                }
+
+                entry.Quantity--;
+                remaining--;
+                moved++;
+            }
+
+            if (remaining <= 0)
+                break;
+        }
+
+        Mod.State.LifetimeWithdrawn += moved;
+        CleanupWarehouse();
+        return moved;
+    }
+
+    internal int WithdrawAllToPlayer(string itemId)
+        => WithdrawToPlayer(itemId, GetWarehouseQuantity(itemId));
+
+    internal IReadOnlyList<(int Quality, int Quantity)> GetQualityBreakdown(string itemId)
+        => Mod.State.Warehouse.Values
+            .Where(p => p is not null && p.Quantity > 0 && string.Equals(p.ItemId, itemId, StringComparison.OrdinalIgnoreCase))
+            .GroupBy(p => p.Quality)
+            .OrderBy(p => p.Key)
+            .Select(p => (p.Key, p.Sum(x => x.Quantity)))
+            .ToList();
+
+    private void AddWarehouse(string itemId, int quality, int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        string key = WarehouseKey(itemId, quality);
+        if (!Mod.State.Warehouse.TryGetValue(key, out WarehouseStockEntry? entry) || entry is null)
+        {
+            entry = new WarehouseStockEntry { ItemId = itemId, Quality = quality, Quantity = 0 };
+            Mod.State.Warehouse[key] = entry;
+        }
+        entry.Quantity += amount;
+    }
+
+    private void CleanupWarehouse()
+    {
+        foreach ((string key, WarehouseStockEntry entry) in Mod.State.Warehouse.ToList())
+        {
+            if (entry is null || entry.Quantity <= 0)
+                Mod.State.Warehouse.Remove(key);
+        }
+    }
+
+    private static string WarehouseKey(string itemId, int quality) => $"{quality}:{itemId}";
+
+    internal static string QualityName(int quality) => quality switch
+    {
+        1 => "은",
+        2 => "금",
+        4 => "이리듐",
+        _ => "일반"
+    };
 
     internal static string GetStageName(int level) => level switch
     {
