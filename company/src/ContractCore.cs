@@ -19,6 +19,7 @@ internal sealed class ContractCore
         Mod.State.AvailableContracts.RemoveAll(p => p is null || string.IsNullOrWhiteSpace(p.Id) || string.IsNullOrWhiteSpace(p.ProductKey));
         Mod.State.AcceptedContracts.RemoveAll(p => p is null || string.IsNullOrWhiteSpace(p.Id) || string.IsNullOrWhiteSpace(p.ProductKey));
         Mod.Clients.EnsureState();
+        Mod.Brand.EnsureState();
 
         foreach (CompanyContract contract in Mod.State.AvailableContracts.Concat(Mod.State.AcceptedContracts))
             MigrateClientKey(contract);
@@ -43,6 +44,7 @@ internal sealed class ContractCore
             Mod.State.ContractsFailed++;
             Mod.State.Reputation = Math.Max(0, Mod.State.Reputation - Math.Max(0, contract.FailureReputationPenalty));
             Mod.Clients.RecordFailedContract(contract, today);
+            Mod.Brand.RecordFailedContract(contract);
         }
         Mod.State.ActiveContracts = Mod.State.AcceptedContracts.Count;
 
@@ -188,7 +190,7 @@ internal sealed class ContractCore
 
         CompleteContract(contract);
         ClientRelationship relation = Mod.Clients.GetRelationship(contract.ClientKey);
-        message = $"계약 완료! {contract.ClientName} · 회사 +{contract.RewardGold:N0}G · 신뢰 {relation.Trust}/100";
+        message = $"계약 완료! {contract.ClientName} · 회사 +{contract.RewardGold:N0}G · 신뢰 {relation.Trust}/100 · 브랜드 {Mod.State.BrandPoints}";
         return true;
     }
 
@@ -250,6 +252,7 @@ internal sealed class ContractCore
         Mod.State.SeasonRevenue += Math.Max(0, contract.RewardGold);
         Mod.State.Reputation += Math.Max(0, contract.ReputationReward);
         Mod.Clients.RecordCompletedContract(contract, today);
+        Mod.Brand.RecordCompletedContract(contract);
         Mod.Company.AddCompanyExperience(10 + Math.Max(1, contract.RequiredQuantity / 2));
     }
 
@@ -269,7 +272,7 @@ internal sealed class ContractCore
             return;
 
         int today = GetCurrentDayNumber();
-        int seed = HashCode.Combine(today, Mod.State.Level, Mod.State.Reputation, Mod.State.ContractsCompleted);
+        int seed = HashCode.Combine(today, Mod.State.Level, Mod.State.Reputation, Mod.State.ContractsCompleted, Mod.State.BrandPoints);
         Random random = new(seed);
 
         // Established clients get a predictable place on the board; the remaining slots stay varied.
@@ -295,8 +298,10 @@ internal sealed class ContractCore
         {
             string clientKey = ResolveClientKey(template);
             ClientRelationship relation = Mod.Clients.GetRelationship(clientKey);
-            int quantityBonus = Mod.Clients.GetQuantityBonusPercent(clientKey);
-            int rewardBonus = Mod.Clients.GetRewardBonusPercent(clientKey);
+            int quantityBonus = Mod.Clients.GetQuantityBonusPercent(clientKey) + Mod.Brand.GetContractQuantityBonusPercent();
+            int rewardBonus = Mod.Clients.GetRewardBonusPercent(clientKey)
+                + Mod.Brand.GetContractRewardBonusPercent()
+                + Mod.Brand.GetProductRewardBonusPercent(template.ProductKey);
 
             int quantityScale = 100 + Math.Max(0, Mod.State.Level - 1) * 12 + random.Next(0, 26) + quantityBonus;
             int quantity = Math.Max(1, template.BaseQuantity * quantityScale / 100);
