@@ -41,7 +41,7 @@ jobs:
             echo success > dist/status.txt
             mkdir -p dist/chunks
             base64 -w 0 dist/WatermelonGenetics.dll > dist/WatermelonGenetics.dll.b64
-            split -b 8000 -d -a 3 dist/WatermelonGenetics.dll.b64 dist/chunks/chunk-
+            split -b 2500 -d -a 3 dist/WatermelonGenetics.dll.b64 dist/chunks/chunk-
             wc -c dist/WatermelonGenetics.dll > dist/dll-size.txt
             sha256sum dist/WatermelonGenetics.dll > dist/dll-sha256.txt
           else
