@@ -15,6 +15,35 @@ internal sealed class ProductExpansionCore
     internal void EnsureState()
     {
         Mod.Production.EnsureState();
+        ReorderRecipesForLegacyPanels();
+    }
+
+    private void ReorderRecipesForLegacyPanels()
+    {
+        if (Mod.Recipes.Count <= 1)
+            return;
+
+        static int FeaturedOrder(string key) => key switch
+        {
+            "TomatoJuice" => 0,
+            "WatermelonJuice" => 1,
+            "ChamoeGiftSet" => 2,
+            "SaltedNapaCabbage" => 3,
+            _ => 100
+        };
+
+        List<ProductionRecipeDefinition> ordered = Mod.Recipes
+            .OrderBy(p => FeaturedOrder(p.Key))
+            .ThenBy(p => string.Equals(p.OutputKind, "Intermediate", StringComparison.OrdinalIgnoreCase) ? 2 : 1)
+            .ThenBy(p => p.RequiredCompanyLevel)
+            .ThenBy(p => p.DisplayName, StringComparer.CurrentCulture)
+            .ToList();
+
+        if (ordered.Select(p => p.Key).SequenceEqual(Mod.Recipes.Select(p => p.Key), StringComparer.OrdinalIgnoreCase))
+            return;
+
+        Mod.Recipes.Clear();
+        Mod.Recipes.AddRange(ordered);
     }
 
     internal IReadOnlyList<ProductionRecipeDefinition> GetFinishedRecipes(bool includeLocked = true)
