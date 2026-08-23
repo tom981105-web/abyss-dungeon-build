@@ -27,6 +27,7 @@ public sealed class ModEntry : Mod
     internal ProductionQualityUi QualityUi { get; private set; } = null!;
     internal ProductExpansionUi ProductUi { get; private set; } = null!;
     internal UiHotfixCore UiHotfix { get; private set; } = null!;
+    internal VersionLabelOverlay VersionLabels { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
@@ -66,6 +67,7 @@ public sealed class ModEntry : Mod
         QualityUi = new ProductionQualityUi(this);
         ProductUi = new ProductExpansionUi(this);
         UiHotfix = new UiHotfixCore(this);
+        VersionLabels = new VersionLabelOverlay(this);
 
         Company.Initialize(helper);
         Production.Initialize();
@@ -73,10 +75,11 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.7.4.1: one UI controller owns all menu positioning and overlays.
-        // The old viewport-based UI event layers stay constructed for code compatibility,
+        // 0.7.5: one UI controller owns menu positioning and overlays.
+        // The older viewport-based UI layers stay constructed for code compatibility,
         // but are intentionally not registered so they cannot fight the corrected layout.
         UiHotfix.Initialize();
+        VersionLabels.Initialize();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
@@ -84,7 +87,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.7.4.1 loaded. UI scale/centering hotfix enabled with Production 2.x and product icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.7.5 loaded. UI scale/centering hotfix enabled with Production 2.x and product icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
