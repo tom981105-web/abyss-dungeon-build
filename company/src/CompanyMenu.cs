@@ -10,11 +10,18 @@ internal sealed class CompanyMenu : IClickableMenu
     private readonly ModEntry Mod;
     private readonly List<(string Name, Rectangle Bounds)> Tabs = new();
     private int SelectedTab;
+    private int WarehousePage;
+    private string WarehouseMessage = "작물을 선택해 회사 창고로 입고하거나 다시 꺼낼 수 있습니다.";
+
+    private const int WarehouseRowsPerPage = 6;
 
     private static readonly Color Green = new(48, 78, 58);
     private static readonly Color Green2 = new(78, 118, 84);
     private static readonly Color Accent = new(90, 128, 76);
     private static readonly Color Muted = new(105, 99, 82);
+    private static readonly Color Soft = new(235, 239, 228);
+    private static readonly Color Button = new(68, 103, 73);
+    private static readonly Color ButtonAlt = new(112, 99, 70);
 
     internal CompanyMenu(ModEntry mod)
         : base(Game1.viewport.Width / 2 - 540, Game1.viewport.Height / 2 - 330, 1080, 660, true)
@@ -42,6 +49,27 @@ internal sealed class CompanyMenu : IClickableMenu
             Game1.playSound("smallSelect");
             return;
         }
+
+        if (SelectedTab == 2)
+            HandleWarehouseClick(x, y);
+    }
+
+    public override void receiveScrollWheelAction(int direction)
+    {
+        if (SelectedTab != 2)
+            return;
+
+        int maxPage = GetWarehouseMaxPage();
+        if (direction < 0 && WarehousePage < maxPage)
+        {
+            WarehousePage++;
+            Game1.playSound("shiny4");
+        }
+        else if (direction > 0 && WarehousePage > 0)
+        {
+            WarehousePage--;
+            Game1.playSound("shiny4");
+        }
     }
 
     public override void draw(SpriteBatch b)
@@ -55,6 +83,8 @@ internal sealed class CompanyMenu : IClickableMenu
 
         if (SelectedTab == 0)
             DrawDashboard(b);
+        else if (SelectedTab == 2)
+            DrawWarehouse(b);
         else
             DrawComingSoon(b, Tabs[SelectedTab].Name);
 
@@ -65,7 +95,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private void DrawSidebar(SpriteBatch b)
     {
         b.DrawString(Game1.dialogueFont, "농업회사", new Vector2(xPositionOnScreen + 25, yPositionOnScreen + 23), Color.White);
-        b.DrawString(Game1.smallFont, "STANDALONE 0.1", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
+        b.DrawString(Game1.smallFont, "STANDALONE 0.2", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
 
         for (int i = 0; i < Tabs.Count; i++)
         {
@@ -94,8 +124,8 @@ internal sealed class CompanyMenu : IClickableMenu
         int cardW = (w - gap * 3) / 4;
         DrawCard(b, x, cardY, cardW, "운영 자금", $"{Game1.player.Money:N0}G");
         DrawCard(b, x + (cardW + gap), cardY, cardW, "오늘 생산", $"{Mod.Company.GetTotal(c.TodayHarvest):N0}");
-        DrawCard(b, x + (cardW + gap) * 2, cardY, cardW, "이번 계절", $"{Mod.Company.GetTotal(c.SeasonHarvest):N0}");
-        DrawCard(b, x + (cardW + gap) * 3, cardY, cardW, "누적 생산", $"{Mod.Company.GetTotal(c.LifetimeHarvest):N0}");
+        DrawCard(b, x + (cardW + gap) * 2, cardY, cardW, "회사 재고", $"{Mod.Company.GetWarehouseUsed():N0}");
+        DrawCard(b, x + (cardW + gap) * 3, cardY, cardW, "창고 용량", $"{Mod.Company.GetWarehouseCapacity():N0}");
 
         int sectionY = cardY + 125;
         b.DrawString(Game1.dialogueFont, "작물 생산 현황", new Vector2(x, sectionY), Game1.textColor);
@@ -110,8 +140,178 @@ internal sealed class CompanyMenu : IClickableMenu
 
         int noteY = rowY + 175;
         drawTextureBox(b, x, noteY, w, 72, Color.White);
-        b.DrawString(Game1.smallFont, "Agricultural Company 0.1 · Crop Genetics와 독립 실행", new Vector2(x + 18, noteY + 12), Accent);
-        b.DrawString(Game1.smallFont, "다음: 0.2 창고 → 0.3 생산라인 → 0.4 납품 계약", new Vector2(x + 18, noteY + 40), Muted);
+        b.DrawString(Game1.smallFont, "Agricultural Company 0.2 · 회사 창고 가동", new Vector2(x + 18, noteY + 12), Accent);
+        b.DrawString(Game1.smallFont, "창고 탭에서 실제 농산물 입고·출고 가능 · 다음 0.3 생산라인", new Vector2(x + 18, noteY + 40), Muted);
+    }
+
+    private void DrawWarehouse(SpriteBatch b)
+    {
+        Mod.Company.EnsureState();
+        int x = xPositionOnScreen + 245;
+        int y = yPositionOnScreen + 26;
+        int w = width - 280;
+
+        b.DrawString(Game1.dialogueFont, "회사 창고", new Vector2(x, y), Game1.textColor);
+        b.DrawString(Game1.smallFont, "원물 농산물 보관 · 품질 등급 보존", new Vector2(x, y + 44), Muted);
+
+        int used = Mod.Company.GetWarehouseUsed();
+        int capacity = Mod.Company.GetWarehouseCapacity();
+        float ratio = capacity <= 0 ? 0f : Math.Clamp(used / (float)capacity, 0f, 1f);
+        Rectangle capacityBack = new(x, y + 75, w - 20, 18);
+        b.Draw(Game1.fadeToBlackRect, capacityBack, new Color(214, 211, 195));
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(capacityBack.X, capacityBack.Y, (int)(capacityBack.Width * ratio), capacityBack.Height), Accent);
+        string capText = $"{used:N0} / {capacity:N0} 칸 사용";
+        b.DrawString(Game1.smallFont, capText, new Vector2(x, y + 99), ratio >= 0.9f ? Color.DarkRed : Muted);
+
+        int headerY = y + 135;
+        b.DrawString(Game1.smallFont, "품목", new Vector2(x + 12, headerY), Muted);
+        b.DrawString(Game1.smallFont, "소지", new Vector2(x + 205, headerY), Muted);
+        b.DrawString(Game1.smallFont, "창고", new Vector2(x + 275, headerY), Muted);
+        b.DrawString(Game1.smallFont, "입고", new Vector2(x + 370, headerY), Muted);
+        b.DrawString(Game1.smallFont, "출고", new Vector2(x + 550, headerY), Muted);
+
+        List<TrackedCropDefinition> crops = GetSortedCrops();
+        int start = WarehousePage * WarehouseRowsPerPage;
+        int rowY = headerY + 30;
+
+        for (int row = 0; row < WarehouseRowsPerPage; row++)
+        {
+            int index = start + row;
+            if (index >= crops.Count)
+                break;
+
+            TrackedCropDefinition crop = crops[index];
+            Rectangle rowRect = new(x, rowY + row * 58, w - 20, 50);
+            b.Draw(Game1.fadeToBlackRect, rowRect, row % 2 == 0 ? Soft : new Color(246, 246, 239));
+
+            int player = Mod.Company.GetPlayerQuantity(crop.ItemId);
+            int stock = Mod.Company.GetWarehouseQuantity(crop.ItemId);
+            string quality = GetQualitySummary(crop.ItemId);
+
+            b.DrawString(Game1.smallFont, crop.DisplayName, new Vector2(rowRect.X + 12, rowRect.Y + 6), Game1.textColor);
+            if (!string.IsNullOrEmpty(quality))
+                b.DrawString(Game1.smallFont, quality, new Vector2(rowRect.X + 12, rowRect.Y + 27), Muted);
+            b.DrawString(Game1.smallFont, player.ToString("N0"), new Vector2(rowRect.X + 210, rowRect.Y + 14), Muted);
+            b.DrawString(Game1.smallFont, stock.ToString("N0"), new Vector2(rowRect.X + 280, rowRect.Y + 14), Accent);
+
+            DrawSmallButton(b, WarehouseButtonRect(row, 0), "+1", Button);
+            DrawSmallButton(b, WarehouseButtonRect(row, 1), "전부", Button);
+            DrawSmallButton(b, WarehouseButtonRect(row, 2), "-1", ButtonAlt);
+            DrawSmallButton(b, WarehouseButtonRect(row, 3), "전부", ButtonAlt);
+        }
+
+        int footerY = y + 528;
+        Rectangle messageBox = new(x, footerY, w - 20, 55);
+        drawTextureBox(b, messageBox.X, messageBox.Y, messageBox.Width, messageBox.Height, Color.White);
+        b.DrawString(Game1.smallFont, WarehouseMessage, new Vector2(messageBox.X + 15, messageBox.Y + 17), Muted);
+
+        int maxPage = GetWarehouseMaxPage();
+        Rectangle prev = PrevPageRect();
+        Rectangle next = NextPageRect();
+        DrawSmallButton(b, prev, "< 이전", WarehousePage > 0 ? Button : new Color(160, 160, 150));
+        DrawSmallButton(b, next, "다음 >", WarehousePage < maxPage ? Button : new Color(160, 160, 150));
+        string page = $"{WarehousePage + 1} / {maxPage + 1}";
+        b.DrawString(Game1.smallFont, page, new Vector2(x + w - 165, footerY + 72), Muted);
+    }
+
+    private void HandleWarehouseClick(int x, int y)
+    {
+        if (PrevPageRect().Contains(x, y) && WarehousePage > 0)
+        {
+            WarehousePage--;
+            Game1.playSound("shiny4");
+            return;
+        }
+        if (NextPageRect().Contains(x, y) && WarehousePage < GetWarehouseMaxPage())
+        {
+            WarehousePage++;
+            Game1.playSound("shiny4");
+            return;
+        }
+
+        List<TrackedCropDefinition> crops = GetSortedCrops();
+        int start = WarehousePage * WarehouseRowsPerPage;
+        for (int row = 0; row < WarehouseRowsPerPage; row++)
+        {
+            int index = start + row;
+            if (index >= crops.Count)
+                break;
+
+            TrackedCropDefinition crop = crops[index];
+            for (int action = 0; action < 4; action++)
+            {
+                if (!WarehouseButtonRect(row, action).Contains(x, y))
+                    continue;
+
+                int moved = action switch
+                {
+                    0 => Mod.Company.DepositFromPlayer(crop.ItemId, 1),
+                    1 => Mod.Company.DepositAllFromPlayer(crop.ItemId),
+                    2 => Mod.Company.WithdrawToPlayer(crop.ItemId, 1),
+                    3 => Mod.Company.WithdrawAllToPlayer(crop.ItemId),
+                    _ => 0
+                };
+
+                if (moved > 0)
+                {
+                    string verb = action <= 1 ? "입고" : "출고";
+                    WarehouseMessage = $"{crop.DisplayName} {moved:N0}개 {verb} 완료.";
+                    Game1.playSound(action <= 1 ? "Ship" : "coin");
+                }
+                else
+                {
+                    WarehouseMessage = action <= 1
+                        ? (Mod.Company.GetWarehouseUsed() >= Mod.Company.GetWarehouseCapacity() ? "창고가 가득 찼습니다." : $"소지품에 {crop.DisplayName}이(가) 없습니다.")
+                        : (Mod.Company.GetWarehouseQuantity(crop.ItemId) <= 0 ? $"창고에 {crop.DisplayName} 재고가 없습니다." : "인벤토리 공간이 부족합니다.");
+                    Game1.playSound("cancel");
+                }
+                return;
+            }
+        }
+    }
+
+    private Rectangle WarehouseButtonRect(int row, int action)
+    {
+        int x = xPositionOnScreen + 245;
+        int y = yPositionOnScreen + 26;
+        int headerY = y + 135;
+        int rowY = headerY + 30 + row * 58;
+        int baseX = x + 355;
+        int buttonW = 76;
+        int gap = 6;
+        return new Rectangle(baseX + action * (buttonW + gap), rowY + 7, buttonW, 36);
+    }
+
+    private Rectangle PrevPageRect()
+        => new(xPositionOnScreen + width - 360, yPositionOnScreen + height - 55, 85, 34);
+
+    private Rectangle NextPageRect()
+        => new(xPositionOnScreen + width - 265, yPositionOnScreen + height - 55, 85, 34);
+
+    private int GetWarehouseMaxPage()
+        => Math.Max(0, (GetSortedCrops().Count - 1) / WarehouseRowsPerPage);
+
+    private List<TrackedCropDefinition> GetSortedCrops()
+        => Mod.Crops
+            .OrderBy(p => FamilyOrder(p.Family))
+            .ThenBy(p => p.DisplayName, StringComparer.CurrentCulture)
+            .ToList();
+
+    private static int FamilyOrder(string family) => family switch
+    {
+        "Vanilla" => 0,
+        "Watermelon" => 1,
+        "KoreanMelon" => 2,
+        "NapaCabbage" => 3,
+        _ => 9
+    };
+
+    private string GetQualitySummary(string itemId)
+    {
+        IReadOnlyList<(int Quality, int Quantity)> values = Mod.Company.GetQualityBreakdown(itemId);
+        if (values.Count == 0)
+            return "";
+        return string.Join(" · ", values.Select(p => $"{CompanyCore.QualityName(p.Quality)} {p.Quantity:N0}"));
     }
 
     private void DrawXp(SpriteBatch b, int x, int y, int w)
@@ -143,6 +343,13 @@ internal sealed class CompanyMenu : IClickableMenu
         b.DrawString(Game1.smallFont, $"누적 {Mod.Company.GetTotal(c.LifetimeHarvest, family):N0}", new Vector2(x + 14, y + 113), Accent);
     }
 
+    private static void DrawSmallButton(SpriteBatch b, Rectangle rect, string text, Color color)
+    {
+        b.Draw(Game1.fadeToBlackRect, rect, color);
+        Vector2 size = Game1.smallFont.MeasureString(text);
+        b.DrawString(Game1.smallFont, text, new Vector2(rect.X + rect.Width / 2 - size.X / 2, rect.Y + rect.Height / 2 - size.Y / 2), Color.White);
+    }
+
     private void DrawComingSoon(SpriteBatch b, string tab)
     {
         int x = xPositionOnScreen + 285;
@@ -150,7 +357,7 @@ internal sealed class CompanyMenu : IClickableMenu
         int w = width - 350;
         drawTextureBox(b, x, y, w, 300, Color.White);
         b.DrawString(Game1.dialogueFont, tab, new Vector2(x, y - 65), Game1.textColor);
-        string version = tab == "창고" ? "0.2" : tab == "생산" ? "0.3" : tab == "계약" ? "0.4" : "후속 업데이트";
+        string version = tab == "생산" ? "0.3" : tab == "계약" ? "0.4" : "후속 업데이트";
         b.DrawString(Game1.dialogueFont, $"{tab} 시스템 준비 중", new Vector2(x + 40, y + 95), Accent);
         b.DrawString(Game1.smallFont, $"{version}에서 실제 기능이 연결됩니다.", new Vector2(x + 42, y + 155), Muted);
     }
