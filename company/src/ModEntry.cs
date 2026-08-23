@@ -21,6 +21,8 @@ public sealed class ModEntry : Mod
     internal ClientCore Clients { get; private set; } = null!;
     internal BrandCore Brand { get; private set; } = null!;
     internal MultiplayerCore Multiplayer { get; private set; } = null!;
+    internal ProductIconRenderer Icons { get; private set; } = null!;
+    internal ProductIconProductionOverlay IconOverlay { get; private set; } = null!;
     internal Production2Ui ProductionUi { get; private set; } = null!;
     internal ProductionQualityUi QualityUi { get; private set; } = null!;
     internal ProductExpansionUi ProductUi { get; private set; } = null!;
@@ -29,8 +31,6 @@ public sealed class ModEntry : Mod
     {
         Config = helper.ReadConfig<ModConfig>();
 
-        // 0.7.3: the base company mod owns the complete vanilla crop catalog.
-        // Crop Genetics metadata is kept in a separate optional file so custom crops remain an independent mod layer.
         Crops = helper.Data.ReadJsonFile<List<TrackedCropDefinition>>("data/tracked_crops.json") ?? new();
         List<TrackedCropDefinition> optionalCropGenetics = helper.Data.ReadJsonFile<List<TrackedCropDefinition>>("data/crop_genetics_crops.json") ?? new();
         foreach (TrackedCropDefinition crop in optionalCropGenetics)
@@ -59,6 +59,8 @@ public sealed class ModEntry : Mod
         Brand = new BrandCore(this);
         Contracts = new ContractCore(this);
         Multiplayer = new MultiplayerCore(this);
+        Icons = new ProductIconRenderer(this);
+        IconOverlay = new ProductIconProductionOverlay(this);
         ProductionUi = new Production2Ui(this);
         QualityUi = new ProductionQualityUi(this);
         ProductUi = new ProductExpansionUi(this);
@@ -71,6 +73,7 @@ public sealed class ModEntry : Mod
         ProductionUi.Initialize();
         QualityUi.Initialize();
         ProductUi.Initialize();
+        IconOverlay.Initialize();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
@@ -78,7 +81,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.7.3 loaded. Vanilla Crop Production Expansion enabled: {vanillaCropCount} vanilla crops, {vanillaProducts.Count} vanilla product recipes, {Recipes.Count} total recipes. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.7.4 loaded. Product icon system enabled: embedded pixel-art templates + live ingredient sprite composition for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
