@@ -63,10 +63,18 @@ internal sealed class CompanyCore
         if (crop is null)
             return;
 
+        Mod.Multiplayer.ReportHarvest(crop.ItemId, amount);
+    }
+
+    internal void ApplyHarvestReport(string itemId, int amount)
+    {
+        if (amount <= 0 || FindCrop(itemId) is null)
+            return;
+
         EnsureState();
-        Add(Mod.State.TodayHarvest, crop.ItemId, amount);
-        Add(Mod.State.SeasonHarvest, crop.ItemId, amount);
-        Add(Mod.State.LifetimeHarvest, crop.ItemId, amount);
+        Add(Mod.State.TodayHarvest, itemId, amount);
+        Add(Mod.State.SeasonHarvest, itemId, amount);
+        Add(Mod.State.LifetimeHarvest, itemId, amount);
         AddCompanyExperience(amount);
     }
 
@@ -82,32 +90,31 @@ internal sealed class CompanyCore
         Mod.State.ProductionQueue ??= new List<ProductionJob>();
         Mod.State.FinishedGoods ??= new Dictionary<string, ProductStockEntry>(StringComparer.OrdinalIgnoreCase);
 
-        if (string.IsNullOrWhiteSpace(Mod.State.CompanyName))
+        if (Context.IsMainPlayer)
         {
-            string farm = Game1.player.farmName.Value;
-            Mod.State.CompanyName = string.IsNullOrWhiteSpace(farm) ? "새별 농업" : $"{farm} 농업";
+            if (string.IsNullOrWhiteSpace(Mod.State.CompanyName))
+            {
+                string farm = Game1.player.farmName.Value;
+                Mod.State.CompanyName = string.IsNullOrWhiteSpace(farm) ? "새별 농업" : $"{farm} 농업";
+            }
+
+            string dayKey = $"{Game1.year}:{Game1.currentSeason}:{Game1.dayOfMonth}";
+            if (!string.Equals(Mod.State.LastDayKey, dayKey, StringComparison.Ordinal))
+            {
+                Mod.State.TodayHarvest.Clear();
+                Mod.State.LastDayKey = dayKey;
+            }
+
+            string seasonKey = $"{Game1.year}:{Game1.currentSeason}";
+            if (!string.Equals(Mod.State.SeasonKey, seasonKey, StringComparison.Ordinal))
+            {
+                Mod.State.SeasonHarvest.Clear();
+                Mod.State.SeasonRevenue = 0;
+                Mod.State.SeasonKey = seasonKey;
+            }
         }
 
-        string dayKey = $"{Game1.year}:{Game1.currentSeason}:{Game1.dayOfMonth}";
-        if (!string.Equals(Mod.State.LastDayKey, dayKey, StringComparison.Ordinal))
-        {
-            Mod.State.TodayHarvest.Clear();
-            Mod.State.LastDayKey = dayKey;
-        }
-
-        string seasonKey = $"{Game1.year}:{Game1.currentSeason}";
-        if (!string.Equals(Mod.State.SeasonKey, seasonKey, StringComparison.Ordinal))
-        {
-            Mod.State.SeasonHarvest.Clear();
-            Mod.State.SeasonRevenue = 0;
-            Mod.State.SeasonKey = seasonKey;
-        }
-
-        foreach ((string key, WarehouseStockEntry entry) in Mod.State.Warehouse.ToList())
-        {
-            if (entry is null || string.IsNullOrWhiteSpace(entry.ItemId) || entry.Quantity <= 0)
-                Mod.State.Warehouse.Remove(key);
-        }
+        CleanupWarehouse();
 
         foreach ((string key, ProductStockEntry entry) in Mod.State.FinishedGoods.ToList())
         {
@@ -116,7 +123,8 @@ internal sealed class CompanyCore
         }
 
         Mod.State.ProductionQueue.RemoveAll(p => p is null || string.IsNullOrWhiteSpace(p.RecipeKey) || p.BatchCount <= 0 || p.RemainingMinutes <= 0);
-        UpdateLevel(Mod.State);
+        if (Context.IsMainPlayer)
+            UpdateLevel(Mod.State);
     }
 
     internal TrackedCropDefinition? FindCrop(string itemId)
@@ -162,6 +170,62 @@ internal sealed class CompanyCore
 
     internal int DepositFromPlayer(string itemId, int requested)
     {
+        if (Context.IsMultiplayer && !Context.IsMainPlayer)
+        {
+            Mod.Multiplayer.RequestWarehouse(itemId, Math.Max(1, requested), deposit: true, all: false);
+            return -1;
+        }
+
+        int moved = DepositFromFarmer(Game1.player, itemId, requested);
+        if (moved > 0)
+            Mod.Multiplayer.BroadcastState();
+        return moved;
+    }
+
+    internal int DepositAllFromPlayer(string itemId)
+    {
+        if (Context.IsMultiplayer && !Context.IsMainPlayer)
+        {
+            Mod.Multiplayer.RequestWarehouse(itemId, 1, deposit: true, all: true);
+            return -1;
+        }
+
+        int moved = DepositFromFarmer(Game1.player, itemId, int.MaxValue);
+        if (moved > 0)
+            Mod.Multiplayer.BroadcastState();
+        return moved;
+    }
+
+    internal int WithdrawToPlayer(string itemId, int requested)
+    {
+        if (Context.IsMultiplayer && !Context.IsMainPlayer)
+        {
+            Mod.Multiplayer.RequestWarehouse(itemId, Math.Max(1, requested), deposit: false, all: false);
+            return -1;
+        }
+
+        int moved = WithdrawToFarmer(Game1.player, itemId, requested);
+        if (moved > 0)
+            Mod.Multiplayer.BroadcastState();
+        return moved;
+    }
+
+    internal int WithdrawAllToPlayer(string itemId)
+    {
+        if (Context.IsMultiplayer && !Context.IsMainPlayer)
+        {
+            Mod.Multiplayer.RequestWarehouse(itemId, 1, deposit: false, all: true);
+            return -1;
+        }
+
+        int moved = WithdrawToFarmer(Game1.player, itemId, GetWarehouseQuantity(itemId));
+        if (moved > 0)
+            Mod.Multiplayer.BroadcastState();
+        return moved;
+    }
+
+    internal int DepositFromFarmer(Farmer farmer, string itemId, int requested)
+    {
         EnsureState();
         if (requested <= 0 || FindCrop(itemId) is null)
             return 0;
@@ -172,9 +236,9 @@ internal sealed class CompanyCore
             return 0;
 
         int moved = 0;
-        for (int i = Game1.player.Items.Count - 1; i >= 0 && remaining > 0; i--)
+        for (int i = farmer.Items.Count - 1; i >= 0 && remaining > 0; i--)
         {
-            Item? item = Game1.player.Items[i];
+            Item? item = farmer.Items[i];
             if (item is null || !string.Equals(item.QualifiedItemId, itemId, StringComparison.OrdinalIgnoreCase))
                 continue;
 
@@ -186,17 +250,14 @@ internal sealed class CompanyCore
             moved += take;
 
             if (item.Stack <= 0)
-                Game1.player.Items[i] = null;
+                farmer.Items[i] = null;
         }
 
         Mod.State.LifetimeDeposited += moved;
         return moved;
     }
 
-    internal int DepositAllFromPlayer(string itemId)
-        => DepositFromPlayer(itemId, int.MaxValue);
-
-    internal int WithdrawToPlayer(string itemId, int requested)
+    internal int WithdrawToFarmer(Farmer farmer, string itemId, int requested)
     {
         EnsureState();
         if (requested <= 0)
@@ -214,7 +275,7 @@ internal sealed class CompanyCore
             while (entry.Quantity > 0 && remaining > 0)
             {
                 Item item = ItemRegistry.Create(entry.ItemId, 1, entry.Quality);
-                if (!Game1.player.addItemToInventoryBool(item))
+                if (!farmer.addItemToInventoryBool(item))
                 {
                     Mod.State.LifetimeWithdrawn += moved;
                     CleanupWarehouse();
@@ -235,9 +296,6 @@ internal sealed class CompanyCore
         return moved;
     }
 
-    internal int WithdrawAllToPlayer(string itemId)
-        => WithdrawToPlayer(itemId, GetWarehouseQuantity(itemId));
-
     internal IReadOnlyList<(int Quality, int Quantity)> GetQualityBreakdown(string itemId)
         => Mod.State.Warehouse.Values
             .Where(p => p is not null && p.Quantity > 0 && string.Equals(p.ItemId, itemId, StringComparison.OrdinalIgnoreCase))
@@ -248,7 +306,7 @@ internal sealed class CompanyCore
 
     internal void AddCompanyExperience(int amount)
     {
-        if (amount <= 0)
+        if (amount <= 0 || (Context.IsMultiplayer && !Context.IsMainPlayer))
             return;
 
         int oldLevel = Mod.State.Level;
