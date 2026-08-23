@@ -62,6 +62,37 @@ internal sealed class ProductionCore
     internal bool TryStart(string recipeKey, int requestedBatches, out string message)
     {
         EnsureState();
+
+        if (Context.IsMultiplayer && !Context.IsMainPlayer)
+        {
+            if (!Mod.Multiplayer.IsSynchronized)
+            {
+                message = "회사 데이터를 호스트와 동기화하는 중입니다.";
+                Mod.Multiplayer.RequestSync();
+                return false;
+            }
+
+            ProductionRecipeDefinition? recipe = FindRecipe(recipeKey);
+            if (recipe is null)
+            {
+                message = "생산 레시피를 찾을 수 없습니다.";
+                return false;
+            }
+
+            Mod.Multiplayer.RequestProduction(recipeKey, Math.Max(1, requestedBatches));
+            message = $"{recipe.DisplayName} 생산 요청을 호스트에 전송했습니다.";
+            return true;
+        }
+
+        bool ok = TryStartAuthoritative(recipeKey, requestedBatches, out message);
+        if (ok)
+            Mod.Multiplayer.BroadcastState();
+        return ok;
+    }
+
+    internal bool TryStartAuthoritative(string recipeKey, int requestedBatches, out string message)
+    {
+        EnsureState();
         ProductionRecipeDefinition? recipe = FindRecipe(recipeKey);
         if (recipe is null)
         {
@@ -179,14 +210,19 @@ internal sealed class ProductionCore
         if (Mod.State.ProductionQueue.Count == 0)
             return;
 
+        bool changed = false;
         foreach (ProductionJob job in Mod.State.ProductionQueue.ToList())
         {
             job.RemainingMinutes = Math.Max(0, job.RemainingMinutes - 10);
+            changed = true;
             if (job.RemainingMinutes > 0)
                 continue;
             Complete(job);
             Mod.State.ProductionQueue.Remove(job);
         }
+
+        if (changed)
+            Mod.Multiplayer.BroadcastState();
     }
 
     private void Complete(ProductionJob job)
