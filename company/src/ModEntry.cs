@@ -17,6 +17,7 @@ public sealed class ModEntry : Mod
     internal ProductionCore Production { get; private set; } = null!;
     internal ContractCore Contracts { get; private set; } = null!;
     internal ClientCore Clients { get; private set; } = null!;
+    internal BrandCore Brand { get; private set; } = null!;
     internal MultiplayerCore Multiplayer { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
@@ -30,6 +31,7 @@ public sealed class ModEntry : Mod
         Company = new CompanyCore(this);
         Production = new ProductionCore(this);
         Clients = new ClientCore(this);
+        Brand = new BrandCore(this);
         Contracts = new ContractCore(this);
         Multiplayer = new MultiplayerCore(this);
         Company.Initialize(helper);
@@ -41,7 +43,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.5 loaded. Persistent client relationships + contracts + equal-partner multiplayer enabled. {ClientProfiles.Count} clients / {ContractTemplates.Count} contract templates. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.6 loaded. Brand progression + product reputation + marketing campaigns + persistent clients enabled. {ClientProfiles.Count} clients / {ContractTemplates.Count} contract templates. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -53,6 +55,7 @@ public sealed class ModEntry : Mod
         Company.EnsureState();
         Production.EnsureState();
         Clients.EnsureState();
+        Brand.EnsureState();
         Contracts.EnsureState();
         Multiplayer.OnSaveLoaded();
         Contracts.OnDayStarted();
@@ -72,6 +75,7 @@ public sealed class ModEntry : Mod
         Company.EnsureState();
         Production.EnsureState();
         Clients.EnsureState();
+        Brand.EnsureState();
         Contracts.EnsureState();
         Contracts.OnDayStarted();
         Multiplayer.OnDayStarted();
@@ -88,6 +92,7 @@ public sealed class ModEntry : Mod
         Company.EnsureState();
         Production.EnsureState();
         Clients.EnsureState();
+        Brand.EnsureState();
         Contracts.EnsureState();
     }
 }
