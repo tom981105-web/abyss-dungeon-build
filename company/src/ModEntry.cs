@@ -50,6 +50,7 @@ public sealed class ModEntry : Mod
         Production.EnsureState();
         Contracts.EnsureState();
         Multiplayer.OnSaveLoaded();
+        Contracts.OnDayStarted();
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
