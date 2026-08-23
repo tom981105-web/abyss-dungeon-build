@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.7.3",
-  "Description": "Production 2.3 adds complete vanilla-crop coverage, 45 vanilla processing recipes, vanilla-first product ordering, optional Crop Genetics integration, quality/yield analysis, contracts, brand progression, and equal-partner multiplayer.",
+  "Version": "0.7.4",
+  "Description": "Production 2.4 adds embedded pixel-art icons for intermediate and finished products, live ingredient-sprite composition, premium frames, complete vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
