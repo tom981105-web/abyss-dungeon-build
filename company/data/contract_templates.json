@@ -1,0 +1,72 @@
+[
+  {
+    "Key": "PelicanMarketTomato",
+    "ClientName": "펠리컨 마트",
+    "ProductKey": "TomatoJuice",
+    "BaseQuantity": 8,
+    "BaseUnitReward": 150,
+    "RequiredCompanyLevel": 1,
+    "MinDeadlineDays": 3,
+    "MaxDeadlineDays": 5
+  },
+  {
+    "Key": "ValleyDinerTomato",
+    "ClientName": "계곡 식당",
+    "ProductKey": "TomatoJuice",
+    "BaseQuantity": 12,
+    "BaseUnitReward": 165,
+    "RequiredCompanyLevel": 1,
+    "MinDeadlineDays": 3,
+    "MaxDeadlineDays": 4
+  },
+  {
+    "Key": "CoastalCafeWatermelon",
+    "ClientName": "해안 카페",
+    "ProductKey": "WatermelonJuice",
+    "BaseQuantity": 10,
+    "BaseUnitReward": 220,
+    "RequiredCompanyLevel": 1,
+    "MinDeadlineDays": 3,
+    "MaxDeadlineDays": 5
+  },
+  {
+    "Key": "RegionalStoreChamoe",
+    "ClientName": "지역 특산품 상회",
+    "ProductKey": "ChamoeGiftSet",
+    "BaseQuantity": 5,
+    "BaseUnitReward": 650,
+    "RequiredCompanyLevel": 2,
+    "MinDeadlineDays": 4,
+    "MaxDeadlineDays": 6
+  },
+  {
+    "Key": "KimchiWorkshopNapa",
+    "ClientName": "계곡 김치공방",
+    "ProductKey": "SaltedNapaCabbage",
+    "BaseQuantity": 16,
+    "BaseUnitReward": 260,
+    "RequiredCompanyLevel": 2,
+    "MinDeadlineDays": 3,
+    "MaxDeadlineDays": 5
+  },
+  {
+    "Key": "ZuzuDistributorTomato",
+    "ClientName": "주주시티 식품유통",
+    "ProductKey": "TomatoJuice",
+    "BaseQuantity": 24,
+    "BaseUnitReward": 190,
+    "RequiredCompanyLevel": 3,
+    "MinDeadlineDays": 4,
+    "MaxDeadlineDays": 6
+  },
+  {
+    "Key": "ZuzuDistributorWatermelon",
+    "ClientName": "주주시티 음료유통",
+    "ProductKey": "WatermelonJuice",
+    "BaseQuantity": 20,
+    "BaseUnitReward": 260,
+    "RequiredCompanyLevel": 3,
+    "MinDeadlineDays": 4,
+    "MaxDeadlineDays": 6
+  }
+]
