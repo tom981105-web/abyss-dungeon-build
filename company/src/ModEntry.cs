@@ -15,11 +15,13 @@ public sealed class ModEntry : Mod
     internal List<ClientProfileDefinition> ClientProfiles { get; private set; } = new();
     internal CompanyCore Company { get; private set; } = null!;
     internal ProductionCore Production { get; private set; } = null!;
+    internal ProductionQualityCore Quality { get; private set; } = null!;
     internal ContractCore Contracts { get; private set; } = null!;
     internal ClientCore Clients { get; private set; } = null!;
     internal BrandCore Brand { get; private set; } = null!;
     internal MultiplayerCore Multiplayer { get; private set; } = null!;
     internal Production2Ui ProductionUi { get; private set; } = null!;
+    internal ProductionQualityUi QualityUi { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
@@ -31,24 +33,28 @@ public sealed class ModEntry : Mod
 
         Company = new CompanyCore(this);
         Production = new ProductionCore(this);
+        Quality = new ProductionQualityCore(this);
         Clients = new ClientCore(this);
         Brand = new BrandCore(this);
         Contracts = new ContractCore(this);
         Multiplayer = new MultiplayerCore(this);
         ProductionUi = new Production2Ui(this);
+        QualityUi = new ProductionQualityUi(this);
 
         Company.Initialize(helper);
         Production.Initialize();
+        Quality.Initialize();
         Brand.Initialize();
         Multiplayer.Initialize();
         ProductionUi.Initialize();
+        QualityUi.Initialize();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Agricultural Company 0.7 loaded. Production 2.0 lines + multi-stage processing + production planning + intermediates + graded finished goods enabled. {Recipes.Count} production recipes. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.7.1 loaded. Production 2.1 quality forecasting + yield ranges + grade probabilities + production reports enabled. {Recipes.Count} production recipes. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -59,6 +65,7 @@ public sealed class ModEntry : Mod
 
         Company.EnsureState();
         Production.EnsureState();
+        Quality.EnsureState();
         Clients.EnsureState();
         Brand.EnsureState();
         Contracts.EnsureState();
@@ -79,6 +86,7 @@ public sealed class ModEntry : Mod
 
         Company.EnsureState();
         Production.EnsureState();
+        Quality.EnsureState();
         Clients.EnsureState();
         Brand.EnsureState();
         Contracts.EnsureState();
@@ -96,6 +104,7 @@ public sealed class ModEntry : Mod
         State = state ?? new CompanySaveData();
         Company.EnsureState();
         Production.EnsureState();
+        Quality.EnsureState();
         Clients.EnsureState();
         Brand.EnsureState();
         Contracts.EnsureState();

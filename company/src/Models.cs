@@ -26,7 +26,7 @@ public sealed class CompanySaveData
     public long LifetimeDeposited { get; set; }
     public long LifetimeWithdrawn { get; set; }
 
-    // Production 2.0 keeps the old fields for forward save compatibility.
+    // Production 2.0/2.1 keeps the old fields for forward save compatibility.
     public List<ProductionJob> ProductionQueue { get; set; } = new();
     public Dictionary<string, ProductStockEntry> FinishedGoods { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public long LifetimeProductionBatches { get; set; }
@@ -35,6 +35,9 @@ public sealed class CompanySaveData
     public List<ProductionPlanEntry> ProductionPlans { get; set; } = new();
     public Dictionary<string, IntermediateStockEntry> IntermediateStock { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public long LifetimeIntermediateUnits { get; set; }
+    public List<ProductionResultReport> ProductionReports { get; set; } = new();
+    public long LifetimePlannedOutput { get; set; }
+    public long LifetimeActualOutput { get; set; }
 
     // 0.4 contracts.
     public string ContractBoardDayKey { get; set; } = "";
@@ -126,10 +129,57 @@ public sealed class ProductionJob
     public int StageTotalMinutes { get; set; }
     public int EfficiencyPercent { get; set; } = 88;
     public int InputQualityScore { get; set; } = 55;
+    public int ProcessQualityScore { get; set; } = 80;
+    public int ForecastQualityScore { get; set; } = 70;
     public int EstimatedOutputQuantity { get; set; }
+    public int EstimatedMinOutput { get; set; }
+    public int EstimatedMaxOutput { get; set; }
+    public int ExpectedYieldPercent { get; set; } = 90;
+    public int ResultSeed { get; set; }
+    public int SGradeChance { get; set; }
+    public int AGradeChance { get; set; }
+    public int BGradeChance { get; set; }
+    public int CGradeChance { get; set; }
     public bool AwaitingStageAdvance { get; set; }
     public string BufferedIntermediateKey { get; set; } = "";
     public int BufferedIntermediateQuantity { get; set; }
+}
+
+public sealed class ProductionForecast
+{
+    public int InputQualityScore { get; set; }
+    public int LineEfficiency { get; set; }
+    public int ProcessQualityScore { get; set; }
+    public int FinalQualityScore { get; set; }
+    public int ExpectedYieldPercent { get; set; }
+    public int MinOutput { get; set; }
+    public int MaxOutput { get; set; }
+    public int SChance { get; set; }
+    public int AChance { get; set; }
+    public int BChance { get; set; }
+    public int CChance { get; set; }
+    public string MostLikelyGrade { get; set; } = "C";
+    public string BottleneckStage { get; set; } = "";
+}
+
+public sealed class ProductionResultReport
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string RecipeKey { get; set; } = "";
+    public string ProductName { get; set; } = "";
+    public string LineName { get; set; } = "";
+    public int BatchCount { get; set; }
+    public int InputQualityScore { get; set; }
+    public int LineEfficiency { get; set; }
+    public int ProcessQualityScore { get; set; }
+    public int FinalQualityScore { get; set; }
+    public int ExpectedYieldPercent { get; set; }
+    public int ActualYieldPercent { get; set; }
+    public int PlannedOutput { get; set; }
+    public int ActualOutput { get; set; }
+    public string Grade { get; set; } = "C";
+    public string BottleneckStage { get; set; } = "";
+    public int CompletedDayNumber { get; set; }
 }
 
 public sealed class IntermediateStockEntry
