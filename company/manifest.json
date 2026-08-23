@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.3.0",
-  "Description": "A standalone agricultural company management system with warehouse storage, timed production queues, and finished goods inventory.",
+  "Version": "0.3.1",
+  "Description": "A standalone agricultural company management system with host-authoritative multiplayer warehouse and production synchronization.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
