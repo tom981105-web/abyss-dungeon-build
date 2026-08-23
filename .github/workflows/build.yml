@@ -3,10 +3,12 @@ name: Build Watermelon Genetics
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'dist/**'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -23,21 +25,37 @@ jobs:
       - name: Add Stardew Valley and SMAPI reference assemblies
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
 
-      - name: Build DLL
+      - name: Build and capture log
+        id: build
         shell: bash
         run: |
+          set +e
           GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
-          dotnet build src/WatermelonGenetics.csproj -c Release /p:GamePath="$GAME_PATH"
+          dotnet build src/WatermelonGenetics.csproj -c Release /p:GamePath="$GAME_PATH" 2>&1 | tee build.log
+          STATUS=${PIPESTATUS[0]}
+          mkdir -p dist
+          cp build.log dist/build.log
+          if [ "$STATUS" -eq 0 ] && [ -f src/bin/Release/net6.0/WatermelonGenetics.dll ]; then
+            cp src/bin/Release/net6.0/WatermelonGenetics.dll dist/WatermelonGenetics.dll
+            echo success > dist/status.txt
+          else
+            rm -f dist/WatermelonGenetics.dll
+            echo failure > dist/status.txt
+          fi
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      - name: Verify DLL
+      - name: Commit build output
         shell: bash
         run: |
-          test -f src/bin/Release/net6.0/WatermelonGenetics.dll
-          ls -lh src/bin/Release/net6.0/WatermelonGenetics.dll
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/build.log dist/status.txt
+          if [ -f dist/WatermelonGenetics.dll ]; then git add -f dist/WatermelonGenetics.dll; fi
+          git commit -m "Store Watermelon Genetics build output [skip ci]" || true
+          git push
 
-      - name: Upload DLL
-        uses: actions/upload-artifact@v4
-        with:
-          name: WatermelonGenetics-dll
-          path: src/bin/Release/net6.0/WatermelonGenetics.dll
-          if-no-files-found: error
+      - name: Fail workflow if build failed
+        if: steps.build.outputs.status != '0'
+        shell: bash
+        run: exit 1
