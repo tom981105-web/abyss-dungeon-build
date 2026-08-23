@@ -65,7 +65,7 @@ internal sealed class ProductCatalogMenu : IClickableMenu
     private readonly ModEntry Mod;
     private int Page;
     private int Filter; // 0 all, 1 intermediate, 2 finished
-    private string Message = "중간재를 먼저 생산한 뒤 여러 완제품 중 어디에 사용할지 선택할 수 있습니다.";
+    private string Message = "각 생산품 아이콘은 포장 형태 + 실제 원재료 스프라이트를 합성해 표시합니다.";
     private Rectangle Panel;
 
     private static readonly Color Wood = new(82, 53, 31);
@@ -212,7 +212,7 @@ internal sealed class ProductCatalogMenu : IClickableMenu
 
         Rectangle header = new(Panel.X + 8, Panel.Y + 8, Panel.Width - 16, 65);
         b.Draw(Game1.fadeToBlackRect, header, Wood);
-        b.DrawString(Game1.dialogueFont, "Production 2.2 · 제품 카탈로그", new Vector2(header.X + 22, header.Y + 15), new Color(247, 226, 164));
+        b.DrawString(Game1.dialogueFont, "Production 2.4 · 생산품 아이콘 카탈로그", new Vector2(header.X + 22, header.Y + 15), new Color(247, 226, 164));
         DrawButton(b, BackButton(), "생산 관리", Green2);
 
         for (int i = 0; i < 3; i++)
@@ -235,16 +235,32 @@ internal sealed class ProductCatalogMenu : IClickableMenu
             bool unlocked = Mod.Production.IsRecipeUnlocked(recipe, out string reason);
             bool intermediate = string.Equals(recipe.OutputKind, "Intermediate", StringComparison.OrdinalIgnoreCase);
             string kind = intermediate ? "중간재" : "완제품";
-            string family = recipe.ProductFamily switch { "Tomato" => "토마토", "Watermelon" => "수박", "KoreanMelon" => "참외", "NapaCabbage" => "배추", _ => "기타" };
+            string family = recipe.ProductFamily switch
+            {
+                "Tomato" => "토마토",
+                "Watermelon" => "수박",
+                "KoreanMelon" => "참외",
+                "NapaCabbage" => "배추",
+                "VanillaFlower" => "꽃",
+                "VanillaVegetable" => "채소",
+                "VanillaFruit" => "과일",
+                "VanillaGrain" => "곡물",
+                "VanillaBeverage" => "음료원료",
+                "VanillaSpecial" => "특수",
+                _ => "기타"
+            };
             string line = recipe.LineType switch { "Packaging" => "포장", "Fermentation" => "발효", _ => "음료" };
             string ingredient = Mod.Production.GetIngredientDisplayName(recipe);
             int have = Mod.Production.GetIngredientQuantity(recipe);
             int max = Mod.Production.GetMaxBatches(recipe);
 
-            b.DrawString(Game1.dialogueFont, recipe.DisplayName, new Vector2(rect.X + 14, rect.Y + 8), unlocked ? WoodDark : Disabled);
-            b.DrawString(Game1.smallFont, $"[{kind}] {family} · {line} 라인", new Vector2(rect.X + 16, rect.Y + 43), intermediate ? Blue : Green);
-            b.DrawString(Game1.smallFont, $"{ingredient} {recipe.InputQuantity} → {recipe.OutputQuantity}{recipe.OutputUnit} · 재고 {have} · 최대 {max}배치", new Vector2(rect.X + 250, rect.Y + 16), Muted);
-            b.DrawString(Game1.smallFont, unlocked ? $"Lv.{recipe.RequiredCompanyLevel} / 브랜드 {recipe.RequiredBrandPoints}" : reason, new Vector2(rect.X + 250, rect.Y + 43), unlocked ? Gold : Disabled);
+            Rectangle icon = new(rect.X + 8, rect.Y + 5, 58, 58);
+            Mod.Icons.DrawRecipeIcon(b, recipe, icon, unlocked ? 1f : 0.48f);
+
+            b.DrawString(Game1.dialogueFont, recipe.DisplayName, new Vector2(rect.X + 76, rect.Y + 7), unlocked ? WoodDark : Disabled);
+            b.DrawString(Game1.smallFont, $"[{kind}] {family} · {line} 라인", new Vector2(rect.X + 78, rect.Y + 42), intermediate ? Blue : Green);
+            b.DrawString(Game1.smallFont, $"{ingredient} {recipe.InputQuantity} → {recipe.OutputQuantity}{recipe.OutputUnit} · 재고 {have} · 최대 {max}배치", new Vector2(rect.X + 330, rect.Y + 16), Muted);
+            b.DrawString(Game1.smallFont, unlocked ? $"Lv.{recipe.RequiredCompanyLevel} / 브랜드 {recipe.RequiredBrandPoints}" : reason, new Vector2(rect.X + 330, rect.Y + 43), unlocked ? Gold : Disabled);
 
             DrawButton(b, OneBatchButton(row), "1배치", unlocked ? Green2 : Disabled);
             DrawButton(b, MaxBatchButton(row), "최대", unlocked ? Blue : Disabled);
