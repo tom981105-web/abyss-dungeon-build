@@ -8,12 +8,13 @@ namespace WatermelonGeneticsCore;
 
 public sealed class ModEntry : Mod
 {
-    // Keep the original item IDs so saves/items made with earlier prototype versions stay compatible.
     public const string HybridizerId = "(BC)Saebyeol.WatermelonCrop_SeedHybridizer";
     private const string SaveKey = "genetics-state";
 
     private ContentBridge? ContentBridge;
+    private ModernTextureBridge? ModernTextures;
 
+    internal CompanyCore Company { get; private set; } = null!;
     internal ModConfig Config { get; private set; } = new();
     internal GeneticsSaveData State { get; private set; } = new();
     internal List<VarietyDefinition> Varieties { get; private set; } = new();
@@ -25,18 +26,22 @@ public sealed class ModEntry : Mod
         Varieties = helper.Data.ReadJsonFile<List<VarietyDefinition>>("data/varieties.json") ?? new();
 
         ContentBridge = new ContentBridge(this);
+        ModernTextures = new ModernTextureBridge();
+        Company = new CompanyCore(this);
+        Company.Initialize(helper);
         helper.Events.Content.AssetRequested += ContentBridge.OnAssetRequested;
+        helper.Events.Content.AssetRequested += ModernTextures.OnAssetRequested;
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
-
-        Monitor.Log("Watermelon Genetics standalone core loaded. Content Patcher is not required.", LogLevel.Info);
+        Monitor.Log("Crop Genetics loaded. Company Core 0.1 is enabled on F7.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
         State = Helper.Data.ReadSaveData<GeneticsSaveData>(SaveKey) ?? new GeneticsSaveData();
+        Company.OnSaveLoaded();
         RefreshDiscoveries();
     }
 
@@ -51,6 +56,7 @@ public sealed class ModEntry : Mod
         if (!Context.IsWorldReady || !Context.IsMainPlayer)
             return;
 
+        Company.OnDayStarted();
         RefreshDiscoveries();
         foreach (HybridJob job in State.Jobs.Values.ToList())
         {
@@ -80,6 +86,9 @@ public sealed class ModEntry : Mod
         if (!Context.IsWorldReady)
             return;
 
+        if (Company.HandleButton(e))
+            return;
+
         if (Enum.TryParse<SButton>(Config.CodexKey, true, out SButton key) && e.Button == key)
         {
             if (Game1.activeClickableMenu is null)
@@ -99,8 +108,8 @@ public sealed class ModEntry : Mod
         {
             Helper.Input.Suppress(e.Button);
             string locationName = Game1.currentLocation.NameOrUniqueName;
-            string jobKey = JobKey(locationName, (int)tile.X, (int)tile.Y);
-            if (State.Jobs.ContainsKey(jobKey))
+            string key2 = JobKey(locationName, (int)tile.X, (int)tile.Y);
+            if (State.Jobs.ContainsKey(key2))
             {
                 Game1.addHUDMessage(new HUDMessage(Helper.Translation.Get("hybridizer.working"), HUDMessage.error_type));
                 return;
@@ -121,9 +130,7 @@ public sealed class ModEntry : Mod
     internal bool TryStartHybrid(string location, int x, int y, VarietyDefinition a, VarietyDefinition b, out int chance)
     {
         chance = GeneticsEngine.GetSuccessChance(a, b);
-        int needA = a.SeedId == b.SeedId ? 2 : 1;
-        int needB = a.SeedId == b.SeedId ? 2 : 1;
-        if (!HasSeed(a.SeedId, needA) || !HasSeed(b.SeedId, needB))
+        if (!HasSeed(a.SeedId, a.SeedId == b.SeedId ? 2 : 1) || !HasSeed(b.SeedId, a.SeedId == b.SeedId ? 2 : 1))
             return false;
 
         ConsumeSeed(a.SeedId, 1);
