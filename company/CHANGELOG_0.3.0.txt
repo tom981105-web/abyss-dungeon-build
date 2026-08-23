@@ -1,0 +1,21 @@
+Agricultural Company v0.3.0
+
+[Production Lines]
+- Added a functional Production tab.
+- Added timed production jobs that advance every 10 in-game minutes.
+- Added persistent production queue and finished-goods inventory.
+- Company level now controls simultaneous line slots: 1 / 2 / 3.
+- Starting production consumes raw warehouse stock immediately.
+- Output quality inherits the lowest quality among consumed ingredients.
+- Completed production grants company experience.
+
+[Initial recipes]
+- Tomato Juice: Tomato x3 -> x2, 60 minutes (standalone vanilla test line)
+- Watermelon Juice: Watermelon-family x2 -> x2, 80 minutes
+- Chamoe Gift Set: Korean-melon-family x5 -> x1, 100 minutes, Lv.2
+- Salted Napa Cabbage: Napa-cabbage-family x4 -> x2, 120 minutes, Lv.2
+
+[Compatibility]
+- Crop Genetics remains optional and independent.
+- v0.1/v0.2 save data migrates automatically through default production fields.
+- Finished goods are company inventory in 0.3 and are intended to feed the 0.4 contract system.
