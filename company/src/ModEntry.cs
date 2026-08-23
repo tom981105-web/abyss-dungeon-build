@@ -29,6 +29,8 @@ public sealed class ModEntry : Mod
     internal UiHotfixCore UiHotfix { get; private set; } = null!;
     internal VersionLabelOverlay VersionLabels { get; private set; } = null!;
     internal UiLayout076 Layout076 { get; private set; } = null!;
+    internal Production080Router Production080 { get; private set; } = null!;
+    internal Version080Overlay Version080 { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
@@ -70,6 +72,8 @@ public sealed class ModEntry : Mod
         UiHotfix = new UiHotfixCore(this);
         VersionLabels = new VersionLabelOverlay(this);
         Layout076 = new UiLayout076(this);
+        Production080 = new Production080Router(this);
+        Version080 = new Version080Overlay(this);
 
         Company.Initialize(helper);
         Production.Initialize();
@@ -77,10 +81,11 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.7.6: a single UI controller owns company/production/catalog positioning.
-        // Older viewport-based overlay controllers remain constructed only for binary/code
-        // compatibility, but are intentionally not registered to avoid coordinate conflicts.
+        // 0.8.0: the production route is intercepted before the legacy 0.7.6 controller,
+        // so the approved reference-style Production080Menu becomes the only production screen.
+        Production080.Initialize();
         Layout076.Initialize();
+        Version080.Initialize();
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
@@ -88,7 +93,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.7.6 loaded. Unified UI-centering layout enabled with Production 2.x and product icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.8.0 loaded. Production UI rebuilt from the approved reference layout with product/process icons for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)

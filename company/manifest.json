@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.7.6",
-  "Description": "Production 2.x UI layout release: true uiViewport-centered company, production, and catalog menus, unified product icons, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, and equal-partner multiplayer.",
+  "Version": "0.8.0",
+  "Description": "Company UI rebuild release: reference-style Production 2.0 management screen with wood-and-cream Stardew-inspired panels, product and process icons, production lines, process flow, plans, intermediate inventory, finished-goods grades, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
