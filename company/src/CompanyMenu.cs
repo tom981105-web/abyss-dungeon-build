@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 
@@ -102,7 +103,7 @@ internal sealed class CompanyMenu : IClickableMenu
     private void DrawSidebar(SpriteBatch b)
     {
         b.DrawString(Game1.dialogueFont, "농업회사", new Vector2(xPositionOnScreen + 25, yPositionOnScreen + 23), Color.White);
-        b.DrawString(Game1.smallFont, "STANDALONE 0.3", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
+        b.DrawString(Game1.smallFont, "MULTIPLAYER 0.3.1", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + 67), new Color(215, 228, 210));
 
         for (int i = 0; i < Tabs.Count; i++)
         {
@@ -112,6 +113,8 @@ internal sealed class CompanyMenu : IClickableMenu
             b.DrawString(Game1.smallFont, tab.Name, new Vector2(tab.Bounds.X + 16, tab.Bounds.Y + 8), Color.White);
         }
 
+        string role = !Context.IsMultiplayer ? "싱글플레이" : Context.IsMainPlayer ? "HOST" : "FARMHAND";
+        b.DrawString(Game1.smallFont, role, new Vector2(xPositionOnScreen + 27, yPositionOnScreen + height - 74), new Color(215, 228, 210));
         b.DrawString(Game1.smallFont, "F7 회사 관리", new Vector2(xPositionOnScreen + 27, yPositionOnScreen + height - 48), new Color(215, 228, 210));
     }
 
@@ -145,10 +148,18 @@ internal sealed class CompanyMenu : IClickableMenu
         DrawCropCard(b, x + (rowW + 12) * 2, rowY, rowW, "참외 계열", "KoreanMelon");
         DrawCropCard(b, x + (rowW + 12) * 3, rowY, rowW, "배추", "NapaCabbage");
 
+        string multiplayerStatus = !Context.IsMultiplayer
+            ? "싱글플레이 · 로컬 회사 데이터"
+            : Context.IsMainPlayer
+                ? "멀티 호스트 · 회사 데이터 최종 권한"
+                : Mod.Multiplayer.IsSynchronized
+                    ? "멀티 게스트 · 호스트와 동기화 완료"
+                    : "멀티 게스트 · 호스트 동기화 중";
+
         int noteY = rowY + 175;
         drawTextureBox(b, x, noteY, w, 72, Color.White);
-        b.DrawString(Game1.smallFont, "Agricultural Company 0.3 · 생산라인 가동", new Vector2(x + 18, noteY + 12), Accent);
-        b.DrawString(Game1.smallFont, "원물 → 생산 큐 → 완제품 · 다음 0.4 납품 계약", new Vector2(x + 18, noteY + 40), Muted);
+        b.DrawString(Game1.smallFont, "Agricultural Company 0.3.1 · Multiplayer Foundation", new Vector2(x + 18, noteY + 12), Accent);
+        b.DrawString(Game1.smallFont, multiplayerStatus, new Vector2(x + 18, noteY + 40), Muted);
     }
 
     private void DrawProduction(SpriteBatch b)
@@ -160,7 +171,7 @@ internal sealed class CompanyMenu : IClickableMenu
         int w = width - 280;
 
         b.DrawString(Game1.dialogueFont, "생산 관리", new Vector2(x, y), Game1.textColor);
-        b.DrawString(Game1.smallFont, "회사 창고 원물을 투입해 게임 시간에 따라 완제품을 생산합니다.", new Vector2(x, y + 43), Muted);
+        b.DrawString(Game1.smallFont, "멀티에서는 호스트가 원재료 차감·생산 큐·완제품을 최종 처리합니다.", new Vector2(x, y + 43), Muted);
 
         int queueCap = Mod.Production.GetQueueCapacity();
         DrawMiniInfo(b, new Rectangle(x, y + 72, 185, 55), "가동 라인", $"{Mod.State.ProductionQueue.Count} / {queueCap}");
@@ -194,7 +205,8 @@ internal sealed class CompanyMenu : IClickableMenu
             b.DrawString(Game1.smallFont, ProductionCore.FormatDuration(recipe.DurationMinutes), new Vector2(row.X + 392, row.Y + 21), Muted);
             b.DrawString(Game1.smallFont, finished.ToString("N0"), new Vector2(row.X + 487, row.Y + 21), Accent);
 
-            bool canStart = unlocked && ingredient >= recipe.InputQuantity && Mod.State.ProductionQueue.Count < queueCap;
+            bool synced = !Context.IsMultiplayer || Context.IsMainPlayer || Mod.Multiplayer.IsSynchronized;
+            bool canStart = synced && unlocked && ingredient >= recipe.InputQuantity && Mod.State.ProductionQueue.Count < queueCap;
             DrawSmallButton(b, ProductionButtonRect(i, 0), "1배치", canStart ? Button : Disabled);
             DrawSmallButton(b, ProductionButtonRect(i, 1), "최대", canStart ? Button : Disabled);
         }
@@ -244,7 +256,7 @@ internal sealed class CompanyMenu : IClickableMenu
                 if (Mod.Production.TryStart(recipe.Key, Math.Max(1, batches), out string message))
                 {
                     ProductionMessage = message;
-                    Game1.playSound("Ship");
+                    Game1.playSound(Context.IsMultiplayer && !Context.IsMainPlayer ? "smallSelect" : "Ship");
                 }
                 else
                 {
@@ -280,7 +292,7 @@ internal sealed class CompanyMenu : IClickableMenu
         int w = width - 280;
 
         b.DrawString(Game1.dialogueFont, "회사 창고", new Vector2(x, y), Game1.textColor);
-        b.DrawString(Game1.smallFont, "원물 농산물 보관 · 품질 등급 보존", new Vector2(x, y + 44), Muted);
+        b.DrawString(Game1.smallFont, "원물 농산물 보관 · 품질 등급 보존 · 멀티 호스트 승인", new Vector2(x, y + 44), Muted);
 
         int used = Mod.Company.GetWarehouseUsed();
         int capacity = Mod.Company.GetWarehouseCapacity();
@@ -380,7 +392,13 @@ internal sealed class CompanyMenu : IClickableMenu
                     _ => 0
                 };
 
-                if (moved > 0)
+                if (moved == -1)
+                {
+                    string verb = action <= 1 ? "입고" : "출고";
+                    WarehouseMessage = $"{crop.DisplayName} {verb} 요청을 호스트에 전송했습니다.";
+                    Game1.playSound("smallSelect");
+                }
+                else if (moved > 0)
                 {
                     string verb = action <= 1 ? "입고" : "출고";
                     WarehouseMessage = $"{crop.DisplayName} {moved:N0}개 {verb} 완료.";
