@@ -12,6 +12,7 @@ public sealed class ModEntry : Mod
     internal ModConfig Config { get; private set; } = new();
     internal CardSaveData State { get; private set; } = new();
     internal List<CardDefinition> Cards { get; private set; } = new();
+    internal CardVisualOverlay VisualOverlay { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
@@ -19,12 +20,15 @@ public sealed class ModEntry : Mod
         Cards = helper.Data.ReadJsonFile<List<CardDefinition>>("data/cards.json") ?? new();
         Cards = Cards.Where(p => !string.IsNullOrWhiteSpace(p.Key)).GroupBy(p => p.Key, StringComparer.OrdinalIgnoreCase).Select(p => p.First()).ToList();
 
+        VisualOverlay = new CardVisualOverlay(this);
+        VisualOverlay.Initialize(helper);
+
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Junimo Cards 0.1.0 loaded with {Cards.Count} Pelican Origins cards. {Config.OpenKey} opens the card shop.", LogLevel.Info);
+        Monitor.Log($"Junimo Cards 0.2.0 loaded with {Cards.Count} Pelican Origins cards. Five featured cards use illustrated art. {Config.OpenKey} opens the card shop.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -59,7 +63,7 @@ public sealed class ModEntry : Mod
         Helper.Input.Suppress(e.Button);
         if (!Context.IsMainPlayer)
         {
-            Monitor.Log("Junimo Cards 0.1.0 card-shop ownership is currently handled by the main player only.", LogLevel.Info);
+            Monitor.Log("Junimo Cards card-shop ownership is currently handled by the main player only.", LogLevel.Info);
             return;
         }
 
