@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.9.1",
-  "Description": "Reference Fidelity Rebuild: native 1280x720 Production091Menu and ProductCatalog091Menu layouts with larger readable text, larger machinery/process/product art, richer wood/brass/parchment textures, production plans, stock slots, quality/yield details, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
+  "Version": "0.9.2",
+  "Description": "Image-Backed UI: renders the approved production-management and product-catalog reference PNGs directly and overlays invisible hit boxes for real production controls, while preserving Production 2.x, vanilla crops, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
