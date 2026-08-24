@@ -81,8 +81,8 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.10.0: approved art is now only a skin. The production screen and catalog
-        // render their real lines, jobs, plans, stock, filters, pages and animations.
+        // 0.11.0 workshop reboot: F7 opens a compact company book. Production is
+        // split into line selection, one-line detail, a plan book and a product book.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -93,7 +93,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.10.0 loaded. Live Production UI enabled with animated lines, real production plans, live stock and data-driven catalog pages for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.11.0 loaded. Workshop UI reboot enabled: company book, production-line screens, plan book and product book for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens the company book.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
