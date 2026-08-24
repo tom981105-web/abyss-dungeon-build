@@ -10,8 +10,6 @@ internal sealed class ModConfig
         set
         {
             string requested = string.IsNullOrWhiteSpace(value) ? "F9" : value.Trim();
-            // v0.1.0 used F8, which collides with Crop Genetics' cultivar book.
-            // Treat that legacy value as F9 so an old config can't keep the collision alive.
             OpenKeyValue = string.Equals(requested, "F8", StringComparison.OrdinalIgnoreCase) ? "F9" : requested;
         }
     }
@@ -45,7 +43,19 @@ internal sealed class CardPull
 
 internal sealed class SaleListing
 {
+    public int Slot { get; set; } = -1;
     public string CollectionKey { get; set; } = "";
+    public int Price { get; set; }
+    public int ListedDay { get; set; }
+}
+
+internal sealed class DailySaleRecord
+{
+    public int Day { get; set; }
+    public string CardKey { get; set; } = "";
+    public string Variant { get; set; } = "Normal";
+    public string Condition { get; set; } = "Near Mint";
+    public int Slot { get; set; }
     public int Price { get; set; }
 }
 
@@ -57,6 +67,14 @@ internal sealed class CardSaveData
     public long LifetimeCardRevenue { get; set; }
     public Dictionary<string, int> Collection { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<SaleListing> SaleShelf { get; set; } = new();
+
+    // v0.3.0 feature-complete shop state.
+    public List<int> ClaimedCollectionBonuses { get; set; } = new();
+    public List<DailySaleRecord> SalesHistory { get; set; } = new();
+    public int LastProcessedSalesDay { get; set; } = -1;
+    public int LastCustomerCount { get; set; }
+    public int LastCardsSold { get; set; }
+    public int LastDailyRevenue { get; set; }
     public string LastDailySalesSummary { get; set; } = "오늘은 아직 카드샵 영업 전입니다.";
 }
 
