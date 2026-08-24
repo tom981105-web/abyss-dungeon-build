@@ -17,8 +17,8 @@ internal sealed class Production080Router
 
     internal void Initialize()
     {
-        // 0.9.0 keeps the proven post-click timing, but routes straight into the
-        // standalone Production090Menu. No 0.8.x production menu or visual overlay is involved.
+        // 0.9.1 keeps the proven post-click timing and routes directly into the
+        // 1280x720 reference-fidelity Production091Menu.
         Mod.Helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
     }
 
@@ -39,10 +39,10 @@ internal sealed class Production080Router
 
     private void OpenProductionMenu()
     {
-        if (Game1.activeClickableMenu is Production090Menu)
+        if (Game1.activeClickableMenu is Production091Menu)
             return;
 
         Game1.playSound("bigSelect");
-        Game1.activeClickableMenu = new Production090Menu(Mod);
+        Game1.activeClickableMenu = new Production091Menu(Mod);
     }
 }
