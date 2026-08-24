@@ -10,16 +10,21 @@ public sealed class ModEntry : Mod
     private readonly Random Rng = new();
 
     internal ModConfig Config { get; private set; } = new();
-    internal CardSaveData State { get; private set; } = new();
+    internal CardSaveData State { get; set; } = new();
     internal List<CardDefinition> Cards { get; private set; } = new();
     internal CardVisualOverlay VisualOverlay { get; private set; } = null!;
+    internal CardShopCore Core { get; private set; } = null!;
 
     public override void Entry(IModHelper helper)
     {
         Config = helper.ReadConfig<ModConfig>();
         Cards = helper.Data.ReadJsonFile<List<CardDefinition>>("data/cards.json") ?? new();
-        Cards = Cards.Where(p => !string.IsNullOrWhiteSpace(p.Key)).GroupBy(p => p.Key, StringComparer.OrdinalIgnoreCase).Select(p => p.First()).ToList();
+        Cards = Cards.Where(p => !string.IsNullOrWhiteSpace(p.Key))
+            .GroupBy(p => p.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(p => p.First())
+            .ToList();
 
+        Core = new CardShopCore(this);
         VisualOverlay = new CardVisualOverlay(this);
         VisualOverlay.Initialize(helper);
 
@@ -28,7 +33,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Junimo Cards 0.2.0 loaded with {Cards.Count} Pelican Origins cards. Five featured cards use illustrated art. {Config.OpenKey} opens the card shop.", LogLevel.Info);
+        Monitor.Log($"Junimo Cards 0.3.0 feature-complete core loaded with {Cards.Count} Pelican Origins cards. {Config.OpenKey} opens the card shop.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -50,7 +55,7 @@ public sealed class ModEntry : Mod
         if (!Context.IsWorldReady || !Context.IsMainPlayer)
             return;
         EnsureState();
-        ProcessDailyCustomers();
+        Core.ProcessDailyCustomers();
     }
 
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
@@ -68,20 +73,11 @@ public sealed class ModEntry : Mod
         }
 
         EnsureState();
-        Game1.activeClickableMenu = new CardShopHomeMenu(this);
+        Game1.activeClickableMenu = new FeatureCardShopMenu(this);
         Game1.playSound("bigSelect");
     }
 
-    internal void EnsureState()
-    {
-        State ??= new CardSaveData();
-        State.Collection ??= new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        State.SaleShelf ??= new List<SaleListing>();
-        State.LastDailySalesSummary ??= "오늘은 아직 카드샵 영업 전입니다.";
-        State.SaleShelf.RemoveAll(p => string.IsNullOrWhiteSpace(p.CollectionKey));
-        if (State.SaleShelf.Count > Config.SaleShelfSlots)
-            State.SaleShelf = State.SaleShelf.Take(Config.SaleShelfSlots).ToList();
-    }
+    internal void EnsureState() => Core.EnsureState();
 
     internal CardDefinition? FindCard(string key)
         => Cards.FirstOrDefault(p => string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase));
@@ -144,7 +140,9 @@ public sealed class ModEntry : Mod
         }
 
         State.PacksSinceRare = gotRarePlus ? 0 : State.PacksSinceRare + 1;
-        message = pity ? "천장 발동! Rare 이상 카드가 보장되었습니다." : "팩을 개봉합니다. 카드를 한 장씩 확인하세요.";
+        message = pity
+            ? "천장 발동! Rare 이상 카드가 보장되었습니다."
+            : "카드를 클릭해서 한 장씩 공개하세요.";
         return true;
     }
 
@@ -153,17 +151,11 @@ public sealed class ModEntry : Mod
         string rarity;
         double roll = Rng.NextDouble() * 100.0;
         if (forceRare)
-        {
             rarity = roll < 70 ? "Rare" : roll < 91 ? "Epic" : roll < 98 ? "Legendary" : "Secret";
-        }
         else if (guaranteeUncommon)
-        {
             rarity = roll < 60 ? "Uncommon" : roll < 85 ? "Rare" : roll < 95 ? "Epic" : roll < 99 ? "Legendary" : "Secret";
-        }
         else
-        {
             rarity = roll < 68 ? "Common" : roll < 90 ? "Uncommon" : roll < 97 ? "Rare" : roll < 99.2 ? "Epic" : roll < 99.85 ? "Legendary" : "Secret";
-        }
 
         List<CardDefinition> pool = Cards.Where(p => string.Equals(p.Rarity, rarity, StringComparison.OrdinalIgnoreCase)).ToList();
         if (pool.Count == 0)
@@ -208,115 +200,40 @@ public sealed class ModEntry : Mod
 
     internal void AddOwned(string collectionKey, int amount)
     {
-        if (amount == 0) return;
+        if (amount == 0)
+            return;
         State.Collection.TryGetValue(collectionKey, out int count);
         int next = count + amount;
-        if (next <= 0) State.Collection.Remove(collectionKey);
-        else State.Collection[collectionKey] = next;
+        if (next <= 0)
+            State.Collection.Remove(collectionKey);
+        else
+            State.Collection[collectionKey] = next;
     }
 
     internal int GetOwned(string collectionKey)
         => State.Collection.TryGetValue(collectionKey, out int count) ? count : 0;
 
-    internal int GetListedCount(string collectionKey)
-        => State.SaleShelf.Count(p => string.Equals(p.CollectionKey, collectionKey, StringComparison.OrdinalIgnoreCase));
+    internal int GetListedCount(string collectionKey) => Core.GetListedCount(collectionKey);
+    internal bool TryListForSale(string collectionKey, out string message) => Core.TryListForSale(collectionKey, out message);
+    internal void RemoveListing(int index) => Core.RemoveListingByListIndex(index);
 
-    internal bool TryListForSale(string collectionKey, out string message)
-    {
-        if (!CardKeys.TryParse(collectionKey, out string cardKey, out string variant, out string condition))
-        {
-            message = "카드 정보를 읽을 수 없습니다.";
-            return false;
-        }
-        CardDefinition? card = FindCard(cardKey);
-        if (card is null)
-        {
-            message = "카드 데이터를 찾을 수 없습니다.";
-            return false;
-        }
-        if (State.SaleShelf.Count >= Config.SaleShelfSlots)
-        {
-            message = $"판매 진열대가 가득 찼습니다. ({Config.SaleShelfSlots}칸)";
-            return false;
-        }
-        int available = GetOwned(collectionKey) - GetListedCount(collectionKey);
-        if (available <= 0)
-        {
-            message = "판매 가능한 여분 카드가 없습니다.";
-            return false;
-        }
-
-        int price = GetMarketValue(card, variant, condition);
-        State.SaleShelf.Add(new SaleListing { CollectionKey = collectionKey, Price = price });
-        message = $"{card.Name} {VariantName(variant)}를 {price:N0}G에 진열했습니다.";
-        Game1.playSound("smallSelect");
-        return true;
-    }
-
-    internal void RemoveListing(int index)
-    {
-        if (index < 0 || index >= State.SaleShelf.Count) return;
-        State.SaleShelf.RemoveAt(index);
-        Game1.playSound("smallSelect");
-    }
-
-    private void ProcessDailyCustomers()
-    {
-        if (State.SaleShelf.Count == 0)
-        {
-            State.LastDailySalesSummary = "오늘은 판매 진열대가 비어 있어 손님 판매가 없었습니다.";
-            return;
-        }
-
-        int sold = 0;
-        int revenue = 0;
-        List<string> names = new();
-        for (int i = State.SaleShelf.Count - 1; i >= 0 && sold < Config.MaxDailySales; i--)
-        {
-            SaleListing listing = State.SaleShelf[i];
-            if (GetOwned(listing.CollectionKey) <= 0)
-            {
-                State.SaleShelf.RemoveAt(i);
-                continue;
-            }
-            if (!CardKeys.TryParse(listing.CollectionKey, out string cardKey, out string variant, out _))
-                continue;
-            CardDefinition? card = FindCard(cardKey);
-            if (card is null) continue;
-
-            double chance = 0.48 + GetRarityRank(card.Rarity) * 0.045;
-            if (variant == "Holo") chance += 0.04;
-            if (variant == "Gold") chance += 0.07;
-            if (variant == "Rainbow") chance += 0.10;
-            chance = Math.Min(0.88, chance);
-            if (Rng.NextDouble() > chance)
-                continue;
-
-            AddOwned(listing.CollectionKey, -1);
-            Game1.player.Money += listing.Price;
-            revenue += listing.Price;
-            sold++;
-            names.Add(card.Name);
-            State.SaleShelf.RemoveAt(i);
-        }
-
-        State.LifetimeCardRevenue += revenue;
-        State.LastDailySalesSummary = sold == 0
-            ? "오늘 손님들은 구경만 하고 돌아갔습니다. 내일 다시 기대해 보세요."
-            : $"오늘 {sold}장 판매 · +{revenue:N0}G ({string.Join(", ", names)})";
-    }
-
-    internal IEnumerable<(string CollectionKey, CardDefinition Card, string Variant, string Condition, int Count, int Value)> GetCollectionRows()
+    internal IEnumerable<(string CollectionKey, CardDefinition Card, string Variant, string Condition, int Count, int Value)> GetCollectionRowsRaw()
     {
         foreach (var pair in State.Collection)
         {
-            if (pair.Value <= 0) continue;
-            if (!CardKeys.TryParse(pair.Key, out string cardKey, out string variant, out string condition)) continue;
+            if (pair.Value <= 0)
+                continue;
+            if (!CardKeys.TryParse(pair.Key, out string cardKey, out string variant, out string condition))
+                continue;
             CardDefinition? card = FindCard(cardKey);
-            if (card is null) continue;
+            if (card is null)
+                continue;
             yield return (pair.Key, card, variant, condition, pair.Value, GetMarketValue(card, variant, condition));
         }
     }
+
+    internal IEnumerable<(string CollectionKey, CardDefinition Card, string Variant, string Condition, int Count, int Value)> GetCollectionRows()
+        => Core.GetCollectionRows("All");
 
     internal static int GetRarityRank(string rarity) => rarity switch
     {
