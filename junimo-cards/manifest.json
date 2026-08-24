@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.1.0",
-  "Description": "A collectible card shop loop for Stardew Valley: buy packs, reveal five cards, build a collection, list duplicates for sale, and earn money from daily customers.",
+  "Version": "0.1.1",
+  "Description": "Hotkey conflict fix: Junimo Cards now opens with F9 and legacy F8 configs are migrated in-memory to avoid colliding with Crop Genetics.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"

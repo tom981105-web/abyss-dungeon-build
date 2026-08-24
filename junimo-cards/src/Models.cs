@@ -2,7 +2,20 @@ namespace JunimoCards;
 
 internal sealed class ModConfig
 {
-    public string OpenKey { get; set; } = "F8";
+    private string OpenKeyValue = "F9";
+
+    public string OpenKey
+    {
+        get => OpenKeyValue;
+        set
+        {
+            string requested = string.IsNullOrWhiteSpace(value) ? "F9" : value.Trim();
+            // v0.1.0 used F8, which collides with Crop Genetics' cultivar book.
+            // Treat that legacy value as F9 so an old config can't keep the collision alive.
+            OpenKeyValue = string.Equals(requested, "F8", StringComparison.OrdinalIgnoreCase) ? "F9" : requested;
+        }
+    }
+
     public int PackPrice { get; set; } = 650;
     public int FivePackPrice { get; set; } = 3000;
     public int SaleShelfSlots { get; set; } = 8;
