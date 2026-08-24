@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.11.1",
-  "Description": "Workshop UI readability fix: centers all workshop screens on the UI viewport, enlarges body and button text, increases card spacing, and keeps the compact company-book production flow with save compatibility and equal-partner multiplayer.",
+  "Version": "0.11.2",
+  "Description": "Workshop UI polish: replaces the cramped six-card product book with a readable four-card layout, separates product details and quality probabilities, enlarges production-plan actions, and preserves the centered workshop flow, saves, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
