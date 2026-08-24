@@ -17,8 +17,9 @@ internal sealed class Production080Router
 
     internal void Initialize()
     {
-        // 0.9.2 keeps the proven post-click timing, but now opens the image-backed
-        // production screen. The authored PNG itself is the visible UI.
+        // Keep the proven post-click handoff timing, but route into the fully live
+        // 0.10.0 production UI. The approved art is now only a visual skin; all
+        // plans, lines, progress, stocks and catalog pages are rendered from state.
         Mod.Helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
     }
 
@@ -39,10 +40,10 @@ internal sealed class Production080Router
 
     private void OpenProductionMenu()
     {
-        if (Game1.activeClickableMenu is Production092Menu)
+        if (Game1.activeClickableMenu is Production100Menu)
             return;
 
         Game1.playSound("bigSelect");
-        Game1.activeClickableMenu = new Production092Menu(Mod);
+        Game1.activeClickableMenu = new Production100Menu(Mod);
     }
 }

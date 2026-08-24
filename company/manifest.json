@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.9.3",
-  "Description": "Image UI Interaction Fix: keeps the approved image-backed production and catalog UI, scales it to 88% of the viewport, recalibrates hit boxes, and adds hover/selection/action feedback while preserving Production 2.x, vanilla crops, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
+  "Version": "0.10.0",
+  "Description": "Live Production UI: preserves the approved visual style while rendering real production lines, animated machinery, current stages, progress, production plans, live intermediate/finished stock, and a fully data-driven paged product catalog. Keeps Production 2.x, vanilla crops, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
