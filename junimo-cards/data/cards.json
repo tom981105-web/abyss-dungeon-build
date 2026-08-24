@@ -1,0 +1,37 @@
+[
+  {"Key":"parsnip","SetNo":"PO-001","Name":"파스닙","Category":"농장","Rarity":"Common","BaseValue":45,"Flavor":"봄의 첫 수확을 기억하는 카드."},
+  {"Key":"potato","SetNo":"PO-002","Name":"감자","Category":"농장","Rarity":"Common","BaseValue":50,"Flavor":"한 번 캤는데 하나가 더 나오면 기분이 좋다."},
+  {"Key":"green_slime","SetNo":"PO-003","Name":"초록 슬라임","Category":"몬스터","Rarity":"Common","BaseValue":55,"Flavor":"광산 초입의 말랑한 단골손님."},
+  {"Key":"joja_cola","SetNo":"PO-004","Name":"조자 콜라","Category":"마을","Rarity":"Common","BaseValue":40,"Flavor":"누가 물에 버렸는지는 아직 모른다."},
+  {"Key":"sardine","SetNo":"PO-005","Name":"정어리","Category":"낚시","Rarity":"Common","BaseValue":45,"Flavor":"바다에서 가장 먼저 만나는 카드 중 하나."},
+  {"Key":"dandelion","SetNo":"PO-006","Name":"민들레","Category":"채집","Rarity":"Common","BaseValue":42,"Flavor":"길가에서 시작되는 작은 수집."},
+  {"Key":"stone","SetNo":"PO-007","Name":"돌","Category":"광산","Rarity":"Common","BaseValue":35,"Flavor":"모든 광산 이야기는 돌 하나에서 시작한다."},
+  {"Key":"copper_ore","SetNo":"PO-008","Name":"구리 광석","Category":"광산","Rarity":"Common","BaseValue":55,"Flavor":"첫 업그레이드의 설렘."},
+  {"Key":"field_snack","SetNo":"PO-009","Name":"수제 에너지바","Category":"채집","Rarity":"Common","BaseValue":48,"Flavor":"하루를 조금 더 길게 만들어 준다."},
+  {"Key":"chicken","SetNo":"PO-010","Name":"갈색 닭","Category":"동물","Rarity":"Common","BaseValue":60,"Flavor":"농장의 아침을 깨우는 작은 스타."},
+
+  {"Key":"strawberry","SetNo":"PO-011","Name":"딸기","Category":"농장","Rarity":"Uncommon","BaseValue":105,"Flavor":"봄 축제를 기다리게 만드는 이유."},
+  {"Key":"blue_jazz","SetNo":"PO-012","Name":"블루 재즈","Category":"농장","Rarity":"Uncommon","BaseValue":95,"Flavor":"작은 꽃밭을 카드 한 장에 담았다."},
+  {"Key":"cave_fly","SetNo":"PO-013","Name":"동굴 파리","Category":"몬스터","Rarity":"Uncommon","BaseValue":110,"Flavor":"소리는 먼저 들리고 모습은 나중에 보인다."},
+  {"Key":"dust_sprite","SetNo":"PO-014","Name":"먼지 정령","Category":"몬스터","Rarity":"Uncommon","BaseValue":120,"Flavor":"석탄을 찾는 사람들의 귀여운 경쟁자."},
+  {"Key":"purple_shorts","SetNo":"PO-015","Name":"보라색 반바지","Category":"마을","Rarity":"Uncommon","BaseValue":140,"Flavor":"펠리컨 타운에서 가장 유명한 분실물."},
+  {"Key":"junimo","SetNo":"PO-016","Name":"주니모","Category":"정령","Rarity":"Uncommon","BaseValue":150,"Flavor":"꾸러미가 완성되는 순간 나타나는 친구."},
+  {"Key":"minecart","SetNo":"PO-017","Name":"광산 수레","Category":"장소","Rarity":"Uncommon","BaseValue":125,"Flavor":"복구하고 나면 마을이 갑자기 가까워진다."},
+
+  {"Key":"ancient_seed","SetNo":"PO-018","Name":"고대 씨앗","Category":"유물","Rarity":"Rare","BaseValue":320,"Flavor":"오래된 씨앗 하나가 계절을 바꾼다."},
+  {"Key":"skull_cavern","SetNo":"PO-019","Name":"해골 동굴","Category":"장소","Rarity":"Rare","BaseValue":360,"Flavor":"계단 하나가 아쉬워지는 깊은 밤."},
+  {"Key":"shadow_brute","SetNo":"PO-020","Name":"그림자 덩치","Category":"몬스터","Rarity":"Rare","BaseValue":300,"Flavor":"광산 깊은 곳의 묵직한 존재감."},
+  {"Key":"krobus","SetNo":"PO-021","Name":"크로버스","Category":"주민","Rarity":"Rare","BaseValue":420,"Flavor":"하수도에서 만나는 가장 조용한 친구."},
+  {"Key":"galaxy_sword","SetNo":"PO-022","Name":"갤럭시 소드","Category":"보물","Rarity":"Rare","BaseValue":450,"Flavor":"사막의 세 기둥이 빛나는 순간."},
+
+  {"Key":"dinosaur","SetNo":"PO-023","Name":"공룡","Category":"동물","Rarity":"Epic","BaseValue":850,"Flavor":"알 하나가 농장의 역사를 바꿔 버렸다."},
+  {"Key":"witch","SetNo":"PO-024","Name":"마녀의 비행","Category":"사건","Rarity":"Epic","BaseValue":900,"Flavor":"밤사이 닭장에 무슨 일이 있었던 걸까."},
+  {"Key":"mermaid","SetNo":"PO-025","Name":"인어의 노래","Category":"축제","Rarity":"Epic","BaseValue":980,"Flavor":"겨울 바다에서 들려오는 다섯 음."},
+  {"Key":"golden_pumpkin","SetNo":"PO-026","Name":"황금 호박","Category":"보물","Rarity":"Epic","BaseValue":1100,"Flavor":"미로 끝에서 기다리는 반짝이는 보상."},
+
+  {"Key":"mr_qi","SetNo":"PO-027","Name":"미스터 치","Category":"전설","Rarity":"Legendary","BaseValue":2600,"Flavor":"언제부터 보고 있었는지는 아무도 모른다."},
+  {"Key":"stardrop","SetNo":"PO-028","Name":"스타드롭","Category":"전설","Rarity":"Legendary","BaseValue":3000,"Flavor":"좋아하는 것을 떠올리게 하는 보랏빛 별."},
+  {"Key":"prismatic_shard","SetNo":"PO-029","Name":"무지갯빛 파편","Category":"전설","Rarity":"Legendary","BaseValue":3400,"Flavor":"어떤 빛으로도 설명하기 어려운 보물."},
+
+  {"Key":"grandpas_shrine","SetNo":"PO-030","Name":"할아버지의 완벽한 평가","Category":"비밀","Rarity":"Secret","BaseValue":9000,"Flavor":"농장에서 보낸 시간 전체가 한 장의 카드가 된다."}
+]
