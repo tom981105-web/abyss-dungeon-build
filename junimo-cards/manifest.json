@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.1.1",
-  "Description": "Hotkey conflict fix: Junimo Cards now opens with F9 and legacy F8 configs are migrated in-memory to avoid colliding with Crop Genetics.",
+  "Version": "0.2.0",
+  "Description": "Five-card visual pass: illustrated art for Potato, Copper Ore, Green Slime, Stardrop, and Witch's Flight with rarity frames, variant shine, and stronger Rare+ reveal effects. Core pack, collection, sales, and save logic remain unchanged.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"
