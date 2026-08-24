@@ -2,7 +2,7 @@ namespace JunimoCards;
 
 internal sealed class ModConfig
 {
-    public string OpenKey { get; set; } = "F8";
+    public string OpenKey { get; set; } = "F9";
     public int PackPrice { get; set; } = 650;
     public int FivePackPrice { get; set; } = 3000;
     public int SaleShelfSlots { get; set; } = 8;
