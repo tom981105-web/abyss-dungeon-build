@@ -81,8 +81,8 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.11.1: workshop menus are centered against the UI viewport rather than
-        // the world camera viewport, with larger readable text and wider spacing.
+        // 0.11.2: keep the centered workshop flow, but replace the cramped
+        // product/plan books with larger four-card and readable action layouts.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -93,7 +93,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.11.1 loaded. Workshop UI centered on the UI viewport with enlarged text and spacing for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens the company book.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.11.2 loaded. Workshop product book now uses four larger cards, separated quality boxes, and larger production-plan controls for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens the company book.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)

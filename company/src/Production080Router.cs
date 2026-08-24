@@ -17,9 +17,11 @@ internal sealed class Production080Router
 
     internal void Initialize()
     {
-        // 0.11.0 workshop reboot:
-        // 1) intercept the configured company key before the legacy CompanyCore handler;
-        // 2) route any legacy CompanyMenu production-tab click back into the new workshop flow.
+        // 0.11.2 workshop flow:
+        // - F7 still opens the compact workshop company book;
+        // - legacy CompanyMenu production-tab clicks return to the workshop flow;
+        // - the cramped 0.11.1 product/plan books are transparently upgraded to
+        //   the larger 0.11.2 four-card/readable replacements.
         Mod.Helper.Events.Input.ButtonPressed += OnButtonPressed;
         Mod.Helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
     }
@@ -40,7 +42,22 @@ internal sealed class Production080Router
 
     private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
     {
-        if (!Context.IsWorldReady || Game1.activeClickableMenu is not CompanyMenu company)
+        if (!Context.IsWorldReady)
+            return;
+
+        if (Game1.activeClickableMenu is ProductBookMenu legacyProduct)
+        {
+            Game1.activeClickableMenu = ProductBook112Menu.FromLegacy(Mod, legacyProduct);
+            return;
+        }
+
+        if (Game1.activeClickableMenu is ProductionPlanBookMenu legacyPlan)
+        {
+            Game1.activeClickableMenu = ProductionPlanBook112Menu.FromLegacy(Mod, legacyPlan);
+            return;
+        }
+
+        if (Game1.activeClickableMenu is not CompanyMenu company)
             return;
 
         int selectedTab = CompanySelectedTabField?.GetValue(company) is int value ? value : -1;
