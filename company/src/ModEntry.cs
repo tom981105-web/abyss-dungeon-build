@@ -81,8 +81,8 @@ public sealed class ModEntry : Mod
         Brand.Initialize();
         Multiplayer.Initialize();
 
-        // 0.9.2 uses approved reference PNGs as the visible production/catalog UI.
-        // Code now supplies only scaling, invisible hit boxes, and actual game actions.
+        // 0.9.3 keeps the approved PNG-backed UI, reduces its viewport footprint,
+        // and adds visible hover/selection/action feedback to the real hit boxes.
         Production080.Initialize();
         Layout076.Initialize();
         Version080.Initialize();
@@ -93,7 +93,7 @@ public sealed class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
         int vanillaCropCount = Crops.Count(p => p.Family.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase));
-        Monitor.Log($"Agricultural Company 0.9.2 loaded. Image-Backed UI enabled for production and catalog screens with {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
+        Monitor.Log($"Agricultural Company 0.9.3 loaded. Image UI Interaction Fix enabled with 88% viewport scaling and visible control feedback for {Recipes.Count} recipes. Vanilla crops: {vanillaCropCount}. F7 opens management.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
