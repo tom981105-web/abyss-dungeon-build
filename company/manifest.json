@@ -1,8 +1,8 @@
 {
   "Name": "Agricultural Company",
   "Author": "Saebyeol",
-  "Version": "0.9.0",
-  "Description": "Full Visual Rebuild: replaces the layered 0.8.x production UI with standalone textured Production090Menu and ProductCatalog090Menu screens, large high-resolution machinery/process/product art, production plans, stock slots, quality/yield details, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
+  "Version": "0.9.1",
+  "Description": "Reference Fidelity Rebuild: native 1280x720 Production091Menu and ProductCatalog091Menu layouts with larger readable text, larger machinery/process/product art, richer wood/brass/parchment textures, production plans, stock slots, quality/yield details, vanilla-crop production, optional Crop Genetics integration, contracts, brand progression, save compatibility, and equal-partner multiplayer.",
   "UniqueID": "Saebyeol.AgriculturalCompany",
   "EntryDll": "AgriculturalCompany.dll",
   "MinimumApiVersion": "4.0.0"
