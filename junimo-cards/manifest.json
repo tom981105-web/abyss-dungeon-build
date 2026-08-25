@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.3.2",
-  "Description": "Readability pass: fewer words on each screen, larger core labels and values, simplified pack/collection/shelf views, while preserving the complete v0.3.1 gameplay and save state.",
+  "Version": "0.3.3",
+  "Description": "UI scale and pack-reveal FX pass: larger readable shop screens, slightly bigger type, valid vanilla reveal sounds, card flip/bounce/glow/sparkle effects, rarity flashes, and preserved 0.3.2 gameplay/save compatibility.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"
