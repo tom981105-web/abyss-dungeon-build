@@ -7,6 +7,8 @@ namespace JunimoCards;
 public sealed class ModEntry : Mod
 {
     private const string SaveKey = "junimo-cards-state";
+    private const bool EqualRarityTestMode = true;
+    private static readonly string[] TestRarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Secret" };
     private readonly Random Rng = new();
 
     internal ModConfig Config { get; private set; } = new();
@@ -33,7 +35,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Junimo Cards 0.3.4 bigger-text + wow reveal flow loaded with {Cards.Count} Pelican Origins cards. {Config.OpenKey} opens the card shop.", LogLevel.Info);
+        Monitor.Log($"Junimo Cards 0.3.5 responsive test pass loaded with {Cards.Count} Pelican Origins cards. Equal-rarity test mode: {EqualRarityTestMode}. {Config.OpenKey} opens the card shop.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -76,7 +78,7 @@ public sealed class ModEntry : Mod
         }
 
         EnsureState();
-        Game1.activeClickableMenu = new ReadableCardShopMenu032(this);
+        Game1.activeClickableMenu = new ReadableCardShopMenu035(this);
         Game1.playSound("bigSelect");
     }
 
@@ -123,13 +125,13 @@ public sealed class ModEntry : Mod
 
         State.UnopenedPacks--;
         State.PacksOpened++;
-        bool pity = State.PacksSinceRare >= 9;
+        bool pity = !EqualRarityTestMode && State.PacksSinceRare >= 9;
         bool gotRarePlus = false;
 
         for (int i = 0; i < 5; i++)
         {
-            bool guaranteeUncommon = i == 4;
-            bool forceRare = pity && i == 4;
+            bool guaranteeUncommon = !EqualRarityTestMode && i == 4;
+            bool forceRare = !EqualRarityTestMode && pity && i == 4;
             CardDefinition card = RollCard(guaranteeUncommon, forceRare);
             string variant = RollVariant();
             string condition = RollCondition();
@@ -147,22 +149,33 @@ public sealed class ModEntry : Mod
         }
 
         State.PacksSinceRare = gotRarePlus ? 0 : State.PacksSinceRare + 1;
-        message = pity
-            ? "천장 발동! Rare 이상 카드가 보장되었습니다."
-            : "카드를 클릭해서 한 장씩 공개하세요.";
+        message = EqualRarityTestMode
+            ? "TEST: 6개 등급이 모두 16.67%입니다."
+            : pity
+                ? "천장 발동! Rare 이상 카드가 보장되었습니다."
+                : "카드를 클릭해서 한 장씩 공개하세요.";
         return true;
     }
 
     private CardDefinition RollCard(bool guaranteeUncommon, bool forceRare)
     {
         string rarity;
-        double roll = Rng.NextDouble() * 100.0;
-        if (forceRare)
-            rarity = roll < 70 ? "Rare" : roll < 91 ? "Epic" : roll < 98 ? "Legendary" : "Secret";
-        else if (guaranteeUncommon)
-            rarity = roll < 60 ? "Uncommon" : roll < 85 ? "Rare" : roll < 95 ? "Epic" : roll < 99 ? "Legendary" : "Secret";
+
+        if (EqualRarityTestMode)
+        {
+            // UI/animation verification mode: every rarity gets exactly the same selection weight.
+            rarity = TestRarities[Rng.Next(TestRarities.Length)];
+        }
         else
-            rarity = roll < 68 ? "Common" : roll < 90 ? "Uncommon" : roll < 97 ? "Rare" : roll < 99.2 ? "Epic" : roll < 99.85 ? "Legendary" : "Secret";
+        {
+            double roll = Rng.NextDouble() * 100.0;
+            if (forceRare)
+                rarity = roll < 70 ? "Rare" : roll < 91 ? "Epic" : roll < 98 ? "Legendary" : "Secret";
+            else if (guaranteeUncommon)
+                rarity = roll < 60 ? "Uncommon" : roll < 85 ? "Rare" : roll < 95 ? "Epic" : roll < 99 ? "Legendary" : "Secret";
+            else
+                rarity = roll < 68 ? "Common" : roll < 90 ? "Uncommon" : roll < 97 ? "Rare" : roll < 99.2 ? "Epic" : roll < 99.85 ? "Legendary" : "Secret";
+        }
 
         List<CardDefinition> pool = Cards.Where(p => string.Equals(p.Rarity, rarity, StringComparison.OrdinalIgnoreCase)).ToList();
         if (pool.Count == 0)
