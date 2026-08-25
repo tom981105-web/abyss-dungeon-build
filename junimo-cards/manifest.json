@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.3.5",
-  "Description": "Responsive test pass: fixes the overgrown/empty home UI, enlarges readable core text without wasting the lower half of the screen, keeps dramatic v0.3.4 reveal FX, allows one-copy sale listings, and temporarily makes all six rarities equally likely for animation testing.",
+  "Version": "0.3.6",
+  "Description": "UI balance pass: smaller pack-opening cards and less dead space, 4x2 collection grid with eight cards per page, mid-sized typography across collection and shelf screens, preserved dramatic reveal effects, one-copy sale listings, post-pack destination choice, and equal-rarity test mode.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"
