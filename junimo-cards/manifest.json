@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.3.1",
-  "Description": "Function-hardening pass: complete pack/collection/sale loop, arbitrary five-card click reveals, eight persistent sale slots, price-aware daily customers, save compatibility, and protected collection copies. Final UI polish comes next.",
+  "Version": "0.3.2",
+  "Description": "Readability pass: fewer words on each screen, larger core labels and values, simplified pack/collection/shelf views, while preserving the complete v0.3.1 gameplay and save state.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"
