@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.3.4",
-  "Description": "Bigger-text and high-impact reveal pass: near-fullscreen readable menus, larger labels and values, dramatic rarity spotlights/rays/flashes/confetti, post-pack choice between pack shop and collection, and sale-shelf listing even when only one copy is owned.",
+  "Version": "0.3.5",
+  "Description": "Responsive test pass: fixes the overgrown/empty home UI, enlarges readable core text without wasting the lower half of the screen, keeps dramatic v0.3.4 reveal FX, allows one-copy sale listings, and temporarily makes all six rarities equally likely for animation testing.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"
