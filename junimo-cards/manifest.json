@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.3.6",
-  "Description": "UI balance pass: smaller pack-opening cards and less dead space, 4x2 collection grid with eight cards per page, mid-sized typography across collection and shelf screens, preserved dramatic reveal effects, one-copy sale listings, post-pack destination choice, and equal-rarity test mode.",
+  "Version": "0.3.7",
+  "Description": "TCG visual pass: larger readable supporting text, polished 4x2 collection cards with illustrated art, premium booster-pack art, TCG-style card backs and rarity frames, preserved reveal FX, one-copy sale listings, post-pack destination choice, and equal-rarity test mode.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"

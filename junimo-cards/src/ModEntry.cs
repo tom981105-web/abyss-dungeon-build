@@ -29,13 +29,14 @@ public sealed class ModEntry : Mod
         Core = new CardShopCore(this);
         VisualOverlay = new CardVisualOverlay(this);
         VisualOverlay.Initialize(helper);
+        TcgVisuals037.Initialize(helper, Monitor);
 
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.GameLoop.Saving += OnSaving;
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Junimo Cards 0.3.5 responsive test pass loaded with {Cards.Count} Pelican Origins cards. Equal-rarity test mode: {EqualRarityTestMode}. {Config.OpenKey} opens the card shop.", LogLevel.Info);
+        Monitor.Log($"Junimo Cards 0.3.7 TCG card-style pass loaded with {Cards.Count} Pelican Origins cards. Equal-rarity test mode: {EqualRarityTestMode}. {Config.OpenKey} opens the card shop.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -78,7 +79,7 @@ public sealed class ModEntry : Mod
         }
 
         EnsureState();
-        Game1.activeClickableMenu = new ReadableCardShopMenu035(this);
+        Game1.activeClickableMenu = new TcgCardShopMenu037(this);
         Game1.playSound("bigSelect");
     }
 
@@ -163,7 +164,6 @@ public sealed class ModEntry : Mod
 
         if (EqualRarityTestMode)
         {
-            // UI/animation verification mode: every rarity gets exactly the same selection weight.
             rarity = TestRarities[Rng.Next(TestRarities.Length)];
         }
         else
