@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.3.0",
-  "Description": "Feature-complete card-shop core: pack buying and click-to-reveal opening, rarity filters, collection bonuses, eight fixed sale slots, adjustable display prices, quality-based daily customers, sale history, and save-compatible state. UI polish comes next.",
+  "Version": "0.3.1",
+  "Description": "Function-hardening pass: complete pack/collection/sale loop, arbitrary five-card click reveals, eight persistent sale slots, price-aware daily customers, save compatibility, and protected collection copies. Final UI polish comes next.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"
