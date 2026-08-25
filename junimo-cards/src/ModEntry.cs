@@ -33,7 +33,7 @@ public sealed class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
 
-        Monitor.Log($"Junimo Cards 0.3.1 function-hardening core loaded with {Cards.Count} Pelican Origins cards. {Config.OpenKey} opens the card shop.", LogLevel.Info);
+        Monitor.Log($"Junimo Cards 0.3.2 readability pass loaded with {Cards.Count} Pelican Origins cards. {Config.OpenKey} opens the card shop.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -76,7 +76,7 @@ public sealed class ModEntry : Mod
         }
 
         EnsureState();
-        Game1.activeClickableMenu = new FeatureCardShopMenu031(this);
+        Game1.activeClickableMenu = new ReadableCardShopMenu032(this);
         Game1.playSound("bigSelect");
     }
 
