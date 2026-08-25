@@ -1014,7 +1014,7 @@ internal sealed class ReadableShelfMenu032 : IClickableMenu
                 continue;
             }
 
-            if (!CardKeys.TryParse(listing.CollectionKey, out string cardKey, out string variant, out string condition))
+            if (!CardKeys.TryParse(listing.CollectionKey, out string cardKey, out string slotVariant, out string slotCondition))
                 continue;
 
             CardDefinition? card = Mod.FindCard(cardKey);
@@ -1030,11 +1030,11 @@ internal sealed class ReadableShelfMenu032 : IClickableMenu
         SaleListing? selected = Mod.Core.GetListingAtSlot(SelectedSlot);
         string selectedInfo = selected is null ? "빈 슬롯" : $"{SelectedSlot + 1}번";
 
-        if (selected is not null && CardKeys.TryParse(selected.CollectionKey, out string key, out string variant, out string condition))
+        if (selected is not null && CardKeys.TryParse(selected.CollectionKey, out string key, out string selectedVariant, out string selectedCondition))
         {
             CardDefinition? card = Mod.FindCard(key);
             if (card is not null)
-                selectedInfo = $"{card.Name} · {ModEntry.VariantName(variant)} · {condition} · 판매확률 {Mod.Core.GetSaleChance(selected) * 100:0}%";
+                selectedInfo = $"{card.Name} · {ModEntry.VariantName(selectedVariant)} · {selectedCondition} · 판매확률 {Mod.Core.GetSaleChance(selected) * 100:0}%";
         }
 
         Rectangle info = new(xPositionOnScreen + 15, Add.Y - 36, width - 30, 30);
