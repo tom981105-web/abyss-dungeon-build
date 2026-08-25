@@ -1,8 +1,8 @@
 {
   "Name": "Junimo Cards",
   "Author": "Saebyeol",
-  "Version": "0.3.6",
-  "Description": "UI balance pass: smaller pack-opening cards and less dead space, 4x2 collection grid with eight cards per page, mid-sized typography across collection and shelf screens, preserved dramatic reveal effects, one-copy sale listings, post-pack destination choice, and equal-rarity test mode.",
+  "Version": "0.3.7",
+  "Description": "TCG card-style pass: noticeably larger tiny text, slightly larger core text, illustrated non-pixel card art for all 30 Pelican Origins cards, premium rarity/variant frames, illustrated booster pack, 4x2 collection, dramatic reveals, one-copy sale listings, post-pack destination choice, and equal-rarity test mode.",
   "UniqueID": "Saebyeol.JunimoCards",
   "EntryDll": "JunimoCards.dll",
   "MinimumApiVersion": "4.0.0"
