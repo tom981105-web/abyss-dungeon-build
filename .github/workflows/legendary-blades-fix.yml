@@ -1,0 +1,51 @@
+name: Build Legendary Blades Fix
+
+on:
+  push:
+    branches: [ legendary-blades-fix-20260829 ]
+    paths:
+      - 'legendary-blades-fix/LegendaryBlades.csproj'
+      - 'legendary-blades-fix/ModEntry.cs'
+      - '.github/workflows/legendary-blades-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up .NET 6
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+      - name: Add Stardew Valley and SMAPI reference assemblies
+        uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
+      - name: Build Legendary Blades
+        shell: bash
+        run: |
+          GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
+          dotnet build legendary-blades-fix/LegendaryBlades.csproj -c Release /p:GamePath="$GAME_PATH"
+      - name: Export DLL as base64 text
+        shell: bash
+        run: |
+          mkdir -p legendary-blades-fix/output
+          base64 -w0 legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll > legendary-blades-fix/output/LegendaryBlades.dll.b64
+          sha256sum legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll > legendary-blades-fix/output/LegendaryBlades.dll.sha256
+      - name: Store build output on build branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add legendary-blades-fix/output/LegendaryBlades.dll.b64 legendary-blades-fix/output/LegendaryBlades.dll.sha256
+          git commit -m "Store Legendary Blades fixed DLL [skip ci]"
+          git push
+      - name: Upload standalone DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: LegendaryBlades-fixed-dll
+          path: legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll
+          if-no-files-found: error
