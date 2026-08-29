@@ -6,6 +6,7 @@ on:
     paths:
       - 'legendary-blades-fix/LegendaryBlades.csproj'
       - 'legendary-blades-fix/ModEntry.cs'
+      - 'legendary-blades-fix/manifest.json'
       - '.github/workflows/legendary-blades-fix.yml'
   workflow_dispatch:
 
@@ -24,17 +25,54 @@ jobs:
           dotnet-version: '6.0.x'
       - name: Add Stardew Valley and SMAPI reference assemblies
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
-      - name: Apply source hotfix and build Legendary Blades
+      - name: Apply evolution hotfix and build Legendary Blades
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
+
           p = Path('legendary-blades-fix/ModEntry.cs')
           s = p.read_text(encoding='utf-8')
-          s = s.replace(
-              'if (Blades.TryGetValue(id, out BladeData? blade))\n            GiveItem(MakeWeapon(blade, true));',
-              'if (Blades.TryGetValue(id, out BladeData? selectedBlade))\n            GiveItem(MakeWeapon(selectedBlade, true));'
+
+          def replace_once(old, new, label):
+              global s
+              if old not in s:
+                  raise SystemExit(f'Hotfix target not found: {label}')
+              s = s.replace(old, new, 1)
+
+          replace_once(
+              'using StardewValley;\n',
+              'using StardewValley;\nusing StardewValley.Enchantments;\n',
+              'GalaxySoulEnchantment using'
           )
+          replace_once('internal const string VersionText = "1.1.0";', 'internal const string VersionText = "1.1.1";', 'version')
+          replace_once(
+              'if (Blades.TryGetValue(id, out BladeData? blade))\n            GiveItem(MakeWeapon(blade, true));',
+              'if (Blades.TryGetValue(id, out BladeData? selectedBlade))\n            GiveItem(MakeWeapon(selectedBlade, true));',
+              'GiveEvolved local name'
+          )
+          replace_once(
+              '''    internal static int GetGalaxySoulCount(MeleeWeapon weapon)\n    {\n        if (weapon.modData.TryGetValue(GalaxySoulDataKey, out string? raw) && int.TryParse(raw, out int value))\n            return Math.Clamp(value, 0, 3);\n        return 0;\n    }''',
+              '''    internal static int GetGalaxySoulCount(MeleeWeapon weapon)\n    {\n        int tracked = 0;\n        if (weapon.modData.TryGetValue(GalaxySoulDataKey, out string? raw) && int.TryParse(raw, out int value))\n            tracked = Math.Clamp(value, 0, 3);\n\n        int vanilla = 0;\n        try\n        {\n            vanilla = Math.Clamp(weapon.GetEnchantmentLevel<GalaxySoulEnchantment>(), 0, 3);\n        }\n        catch (Exception ex)\n        {\n            Instance?.Monitor.Log($"Could not read vanilla Galaxy Soul level: {ex.GetType().Name}", LogLevel.Trace);\n        }\n\n        // Old builds tracked our intercepted forge steps in modData, while a vanilla/alternate\n        // forge path can store Galaxy Soul enchantments on the weapon. They represent distinct\n        // completed steps, so combine both and clamp to the intended three-soul requirement.\n        return Math.Clamp(tracked + vanilla, 0, 3);\n    }''',
+              'Galaxy Soul counter'
+          )
+          replace_once(
+              '''    private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)\n    {\n        if (!pendingCinderCharge || !Context.IsWorldReady)\n            return;\n\n        pendingCinderCharge = false;\n        int current = Game1.player.Items.CountId(CinderShardId);\n        int targetMaximum = Math.Max(0, pendingCinderBefore - 20);\n\n        // Vanilla ForgeMenu normally removes the shard cost outside CraftItem. This fallback only removes\n        // the missing amount, so the player is charged exactly 20 and is never double-charged by this mod.\n        if (current > targetMaximum)\n            Game1.player.Items.ReduceId(CinderShardId, current - targetMaximum);\n    }''',
+              '''    private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)\n    {\n        if (!Context.IsWorldReady)\n            return;\n\n        if (pendingCinderCharge)\n        {\n            pendingCinderCharge = false;\n            int current = Game1.player.Items.CountId(CinderShardId);\n            int targetMaximum = Math.Max(0, pendingCinderBefore - 20);\n\n            // Vanilla ForgeMenu normally removes the shard cost outside CraftItem. This fallback only removes\n            // the missing amount, so the player is charged exactly 20 and is never double-charged by this mod.\n            if (current > targetMaximum)\n                Game1.player.Items.ReduceId(CinderShardId, current - targetMaximum);\n        }\n\n        // Do not depend only on ForgeMenu returning a replacement item. Some forge paths keep the\n        // original weapon object, which made the third upgrade consume materials without visibly\n        // changing the weapon. Re-check the player's inventory several times per second and repair it.\n        if (e.IsMultipleOf(15))\n            TryEvolveFullyForgedInventoryBlades();\n    }\n\n    private void TryEvolveFullyForgedInventoryBlades()\n    {\n        for (int i = 0; i < Game1.player.Items.Count; i++)\n        {\n            if (Game1.player.Items[i] is not MeleeWeapon weapon)\n                continue;\n\n            BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n            if (blade is null || alreadyEvolved || GetGalaxySoulCount(weapon) < 3)\n                continue;\n\n            MeleeWeapon evolvedWeapon = MakeWeapon(blade, true);\n            CopyWeaponState(weapon, evolvedWeapon);\n            Game1.player.Items[i] = evolvedWeapon;\n\n            string message = T("forge.complete", $"{weapon.DisplayName} has awakened into {evolvedWeapon.DisplayName}!", new { name = weapon.DisplayName, evolved = evolvedWeapon.DisplayName });\n            Game1.showGlobalMessage(message);\n            Monitor.Log($"Evolution fallback repaired slot {i}: {weapon.ItemId} -> {evolvedWeapon.ItemId}.", LogLevel.Info);\n        }\n    }''',
+              'UpdateTicked fallback'
+          )
+          replace_once(
+              '''        var values = new List<object?>();\n        foreach (object? value in sourceValues)\n            values.Add(value);''',
+              '''        var values = new List<object?>();\n        foreach (object? value in sourceValues)\n        {\n            // Galaxy Souls are the evolution catalyst. Preserve every other forge/enchantment,\n            // but don't carry the consumed Galaxy Soul levels into the evolved weapon.\n            if (value is GalaxySoulEnchantment)\n                continue;\n            values.Add(value);\n        }''',
+              'enchantment copy filter'
+          )
+          replace_once(
+              '''        if (nextStage >= 3)\n        {\n            MeleeWeapon evolved = ModEntry.MakeWeapon(blade, true);''',
+              '''        if (nextStage >= 3)\n        {\n            // Persist stage 3 on the original object BEFORE returning a replacement. If ForgeMenu\n            // keeps the original object for any reason, the inventory fallback will still evolve it.\n            weapon.modData[ModEntry.GalaxySoulDataKey] = "3";\n            MeleeWeapon evolved = ModEntry.MakeWeapon(blade, true);''',
+              'third-stage persistence'
+          )
+          replace_once('Legendary Blades v1.1.0 - diagnostics', 'Legendary Blades v1.1.1 - diagnostics', 'diagnostic version')
+
           p.write_text(s, encoding='utf-8')
           PY
           GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
@@ -48,11 +86,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add legendary-blades-fix/output/LegendaryBlades.dll legendary-blades-fix/output/LegendaryBlades.dll.sha256
-          git commit -m "Store Legendary Blades fixed DLL [skip ci]"
+          git commit -m "Store Legendary Blades evolution-fix DLL [skip ci]" || true
           git push
       - name: Upload standalone DLL
         uses: actions/upload-artifact@v4
         with:
-          name: LegendaryBlades-fixed-dll
+          name: LegendaryBlades-v1.1.1-evolution-fix
           path: legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll
           if-no-files-found: error
