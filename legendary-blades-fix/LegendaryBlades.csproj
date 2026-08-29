@@ -10,9 +10,13 @@
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>
     <InformationalVersion>1.1.0</InformationalVersion>
-    <EnableHarmony>true</EnableHarmony>
+    <GamePath Condition="'$(GamePath)' == ''">$(HOME)/.steam/steam/steamapps/common/Stardew Valley</GamePath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+    <Reference Include="StardewModdingAPI"><HintPath>$(GamePath)/StardewModdingAPI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Stardew Valley"><HintPath>$(GamePath)/Stardew Valley.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MonoGame.Framework"><HintPath>$(GamePath)/MonoGame.Framework.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="xTile"><HintPath>$(GamePath)/xTile.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(GamePath)/0Harmony.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 </Project>
