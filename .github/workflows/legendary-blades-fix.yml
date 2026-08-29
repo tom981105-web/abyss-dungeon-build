@@ -24,23 +24,30 @@ jobs:
           dotnet-version: '6.0.x'
       - name: Add Stardew Valley and SMAPI reference assemblies
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
-      - name: Build Legendary Blades
+      - name: Apply source hotfix and build Legendary Blades
         shell: bash
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('legendary-blades-fix/ModEntry.cs')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace(
+              'if (Blades.TryGetValue(id, out BladeData? blade))\n            GiveItem(MakeWeapon(blade, true));',
+              'if (Blades.TryGetValue(id, out BladeData? selectedBlade))\n            GiveItem(MakeWeapon(selectedBlade, true));'
+          )
+          p.write_text(s, encoding='utf-8')
+          PY
           GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
           dotnet build legendary-blades-fix/LegendaryBlades.csproj -c Release /p:GamePath="$GAME_PATH"
-      - name: Export DLL as base64 text
+      - name: Store standalone DLL on build branch
         shell: bash
         run: |
           mkdir -p legendary-blades-fix/output
-          base64 -w0 legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll > legendary-blades-fix/output/LegendaryBlades.dll.b64
-          sha256sum legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll > legendary-blades-fix/output/LegendaryBlades.dll.sha256
-      - name: Store build output on build branch
-        shell: bash
-        run: |
+          cp legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll legendary-blades-fix/output/LegendaryBlades.dll
+          sha256sum legendary-blades-fix/output/LegendaryBlades.dll > legendary-blades-fix/output/LegendaryBlades.dll.sha256
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add legendary-blades-fix/output/LegendaryBlades.dll.b64 legendary-blades-fix/output/LegendaryBlades.dll.sha256
+          git add legendary-blades-fix/output/LegendaryBlades.dll legendary-blades-fix/output/LegendaryBlades.dll.sha256
           git commit -m "Store Legendary Blades fixed DLL [skip ci]"
           git push
       - name: Upload standalone DLL
