@@ -26,7 +26,7 @@ jobs:
       - name: Add Stardew Valley and SMAPI reference assemblies
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
 
-      - name: Apply v1.2.1 spend-right forge hotfix
+      - name: Apply v1.2.2 forge and Korean localization hotfix
         shell: bash
         run: |
           python3 - <<'PY'
@@ -43,7 +43,7 @@ jobs:
 
           replace_once(
               'internal const string VersionText = "1.1.0";',
-              'internal const string VersionText = "1.2.1";',
+              'internal const string VersionText = "1.2.2";',
               'version text'
           )
           replace_once(
@@ -58,8 +58,33 @@ jobs:
           )
           replace_once(
               'helper.ConsoleCommands.Add("legendaryblades_diag", "Print Legendary Blades diagnostics.", DiagCommand);',
-              'helper.ConsoleCommands.Add("legendaryblades_diag", "Print Legendary Blades diagnostics.", DiagCommand);\n        helper.ConsoleCommands.Add("legendaryblades_status", "Print selected Legendary Blade forge state.", StatusCommand);\n        helper.ConsoleCommands.Add("legendaryblades_forceevolve", "Force-evolve the selected base Legendary Blade for recovery/testing.", ForceEvolveCommand);',
+              'helper.ConsoleCommands.Add("legendaryblades_diag", "Legendary Blades 진단 정보를 표시합니다.", DiagCommand);\n        helper.ConsoleCommands.Add("legendaryblades_status", "현재 선택한 전설의 검 강화 상태를 표시합니다.", StatusCommand);\n        helper.ConsoleCommands.Add("legendaryblades_forceevolve", "복구/테스트용으로 현재 선택한 기본 전설의 검을 강제 진화시킵니다.", ForceEvolveCommand);',
               'commands'
+          )
+          replace_once(
+              'Monitor.Log($"Legendary Blades v{VersionText} loaded.", LogLevel.Info);',
+              'Monitor.Log($"Legendary Blades v{VersionText} 불러오기 완료.", LogLevel.Info);',
+              'load log Korean'
+          )
+          replace_once(
+              'Description = T(evolved ? blade.EvolvedDescKey : blade.BaseDescKey, evolved ? "An awakened Legendary Blade." : "A Legendary Blade."),',
+              'Description = T(evolved ? blade.EvolvedDescKey : blade.BaseDescKey, evolved ? "각성한 전설의 검." : "전설의 검."),',
+              'description fallback Korean'
+          )
+          replace_once(
+              'mail[Mail1Id] = T("mail.marlon4.text", "@,^I have been watching your progress as a member of the Adventurer\'s Guild.^^When the time comes, I will tell you the rest.^^— Marlon");',
+              'mail[Mail1Id] = T("mail.marlon4.text", "@,^나는 네가 모험가 길드의 일원으로서 성장해 온 모습을 지켜봐 왔다.^^때가 되면 나머지 이야기도 들려주겠다.^^— 말론");',
+              'mail1 fallback Korean'
+          )
+          replace_once(
+              'mail[Mail2Id] = T("mail.marlon8.text", "@,^I think I have waited long enough.^^The form you know is not the final form of those weapons.^^— Marlon");',
+              'mail[Mail2Id] = T("mail.marlon8.text", "@,^이제 충분히 오래 기다린 것 같군.^^네가 알고 있는 모습은 그 무기들의 최종 형태가 아니다.^^— 말론");',
+              'mail2 fallback Korean'
+          )
+          replace_once(
+              'Game1.showRedMessage("20 Cinder Shards are required.");',
+              'Game1.showRedMessage(T("forge.cinder.required", "잉걸불 파편 20개가 필요합니다."));',
+              'cinder message Korean'
           )
           replace_once(
               '''    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)\n    {\n        ReconcileProgressionState();\n    }''',
@@ -68,18 +93,38 @@ jobs:
           )
           replace_once(
               '''    private void OnDayStarted(object? sender, DayStartedEventArgs e)\n    {\n        ReconcileProgressionState();\n    }''',
-              '''    private void RepairCompletedStages()\n    {\n        if (!Context.IsWorldReady)\n            return;\n\n        foreach (Item? item in Game1.player.Items)\n        {\n            if (item is not MeleeWeapon weapon)\n                continue;\n\n            BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n            if (blade is null || alreadyEvolved || GetGalaxySoulCount(weapon) < 3)\n                continue;\n\n            string oldId = weapon.ItemId;\n            string oldName = weapon.DisplayName;\n            weapon.transform(blade.EvolvedItemId);\n            weapon.modData.Remove(GalaxySoulDataKey);\n            Game1.showGlobalMessage(T("forge.complete", $"{oldName} has awakened into {weapon.DisplayName}!", new { name = oldName, evolved = weapon.DisplayName }));\n            Monitor.Log($"v1.2.1 repaired completed stage: {oldId} -> {weapon.ItemId}.", LogLevel.Info);\n        }\n    }\n\n    private void OnDayStarted(object? sender, DayStartedEventArgs e)\n    {\n        ReconcileProgressionState();\n        RepairCompletedStages();\n    }''',
+              '''    private void RepairCompletedStages()\n    {\n        if (!Context.IsWorldReady)\n            return;\n\n        foreach (Item? item in Game1.player.Items)\n        {\n            if (item is not MeleeWeapon weapon)\n                continue;\n\n            BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n            if (blade is null || alreadyEvolved || GetGalaxySoulCount(weapon) < 3)\n                continue;\n\n            string oldId = weapon.ItemId;\n            string oldName = weapon.DisplayName;\n            weapon.transform(blade.EvolvedItemId);\n            weapon.modData.Remove(GalaxySoulDataKey);\n            Game1.showGlobalMessage(T("forge.complete", $"{oldName}이(가) {weapon.DisplayName}(으)로 각성했습니다!", new { name = oldName, evolved = weapon.DisplayName }));\n            Monitor.Log($"v1.2.2 완료된 강화 상태 복구: {oldId} -> {weapon.ItemId}.", LogLevel.Info);\n        }\n    }\n\n    private void OnDayStarted(object? sender, DayStartedEventArgs e)\n    {\n        ReconcileProgressionState();\n        RepairCompletedStages();\n    }''',
               'repair method'
           )
           replace_once(
               '''    private void DiagCommand(string command, string[] args)\n    {''',
-              '''    private void StatusCommand(string command, string[] args)\n    {\n        Monitor.Log("Legendary Blades v1.2.1 selected-weapon status", LogLevel.Info);\n        if (!Context.IsWorldReady || Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("Select a Legendary Blade in the hotbar first.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool evolved);\n        int stage = GetGalaxySoulCount(weapon);\n        Monitor.Log($"ItemId={weapon.ItemId}; Qualified={weapon.QualifiedItemId}; recognized={blade is not null}; evolved={evolved}; stage={stage}; mail2={Game1.player.mailReceived.Contains(Mail2Id)}", LogLevel.Info);\n    }\n\n    private void ForceEvolveCommand(string command, string[] args)\n    {\n        if (!Context.IsWorldReady || Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("Select a base Legendary Blade in the hotbar first.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n        if (blade is null || alreadyEvolved)\n        {\n            Monitor.Log(blade is null ? "The selected weapon is not a Legendary Blade." : "The selected Legendary Blade is already evolved.", LogLevel.Warn);\n            return;\n        }\n\n        string oldId = weapon.ItemId;\n        string oldName = weapon.DisplayName;\n        weapon.transform(blade.EvolvedItemId);\n        weapon.modData.Remove(GalaxySoulDataKey);\n        Game1.showGlobalMessage(T("forge.complete", $"{oldName} has awakened into {weapon.DisplayName}!", new { name = oldName, evolved = weapon.DisplayName }));\n        Monitor.Log($"v1.2.1 force-evolved: {oldId} -> {weapon.ItemId}.", LogLevel.Info);\n    }\n\n    private void DiagCommand(string command, string[] args)\n    {''',
+              '''    private void StatusCommand(string command, string[] args)\n    {\n        Monitor.Log("Legendary Blades v1.2.2 선택 무기 상태", LogLevel.Info);\n        if (!Context.IsWorldReady || Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("먼저 단축바에서 전설의 검을 선택하세요.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool evolved);\n        int stage = GetGalaxySoulCount(weapon);\n        Monitor.Log($"아이템ID={weapon.ItemId}; 전체ID={weapon.QualifiedItemId}; 인식됨={blade is not null}; 진화됨={evolved}; 강화단계={stage}; 두번째편지={Game1.player.mailReceived.Contains(Mail2Id)}", LogLevel.Info);\n    }\n\n    private void ForceEvolveCommand(string command, string[] args)\n    {\n        if (!Context.IsWorldReady || Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("먼저 단축바에서 기본 전설의 검을 선택하세요.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n        if (blade is null || alreadyEvolved)\n        {\n            Monitor.Log(blade is null ? "선택한 무기는 전설의 검이 아닙니다." : "선택한 전설의 검은 이미 진화했습니다.", LogLevel.Warn);\n            return;\n        }\n\n        string oldId = weapon.ItemId;\n        string oldName = weapon.DisplayName;\n        weapon.transform(blade.EvolvedItemId);\n        weapon.modData.Remove(GalaxySoulDataKey);\n        Game1.showGlobalMessage(T("forge.complete", $"{oldName}이(가) {weapon.DisplayName}(으)로 각성했습니다!", new { name = oldName, evolved = weapon.DisplayName }));\n        Monitor.Log($"v1.2.2 강제 진화: {oldId} -> {weapon.ItemId}.", LogLevel.Info);\n    }\n\n    private void DiagCommand(string command, string[] args)\n    {''',
               'status and recovery commands'
           )
           replace_once(
-              'Legendary Blades v1.1.0 - diagnostics',
-              'Legendary Blades v1.2.1 - diagnostics',
-              'diagnostics version'
+              'Monitor.Log("Legendary Blades v1.1.0 - diagnostics", LogLevel.Info);',
+              'Monitor.Log(T("cmd.diag.header", "Legendary Blades v1.2.2 - 진단"), LogLevel.Info);',
+              'diagnostics header'
+          )
+          replace_once(
+              'Monitor.Log("Target shop: AdventureShop", LogLevel.Info);',
+              'Monitor.Log(T("cmd.diag.shop", "대상 상점: 모험가 길드"), LogLevel.Info);',
+              'diagnostics shop'
+          )
+          replace_once(
+              'Monitor.Log($"Texture: {TextureAsset}", LogLevel.Info);',
+              'Monitor.Log(T("cmd.diag.texture", $"텍스처: {TextureAsset}"), LogLevel.Info);',
+              'diagnostics texture'
+          )
+          replace_once(
+              'Monitor.Log("Forge evolution: 3 Galaxy Souls, 20 Cinder Shards per forge, 60 total per sword.", LogLevel.Info);',
+              'Monitor.Log(T("cmd.diag.forge", "제련 진화: 갤럭시 소울 3개, 제련 1회당 잉걸불 파편 20개, 검 1자루당 총 60개."), LogLevel.Info);',
+              'diagnostics forge'
+          )
+          replace_once(
+              'Monitor.Log("Progression: Mines floor 100 -> first letter; Skull Cavern floor 150 -> second letter; no friendship requirement.", LogLevel.Info);',
+              'Monitor.Log("진행 조건: 광산 100층 -> 첫 번째 편지; 해골 동굴 150층 -> 두 번째 편지; 호감도 조건 없음.", LogLevel.Info);',
+              'diagnostics progression'
           )
 
           p.write_text(s, encoding='utf-8')
@@ -97,7 +142,7 @@ jobs:
 
           namespace LegendaryBlades;
 
-          internal static class LegendaryForge121
+          internal static class LegendaryForge122
           {
               internal static bool IsGalaxySoul(Item? item)
                   => item is not null
@@ -124,11 +169,11 @@ jobs:
           }
 
           [HarmonyPatch(typeof(Tool), nameof(Tool.CanForge))]
-          internal static class LegendaryBladeCanForge121Patch
+          internal static class LegendaryBladeCanForge122Patch
           {
               private static void Postfix(Tool __instance, Item item, ref bool __result)
               {
-                  if (__instance is not MeleeWeapon weapon || !LegendaryForge121.IsGalaxySoul(item))
+                  if (__instance is not MeleeWeapon weapon || !LegendaryForge122.IsGalaxySoul(item))
                       return;
 
                   BladeData? blade = ModEntry.GetBladeForWeapon(weapon, out bool evolved);
@@ -141,12 +186,12 @@ jobs:
           }
 
           [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.IsValidCraft))]
-          internal static class LegendaryBladeIsValidCraft121Patch
+          internal static class LegendaryBladeIsValidCraft122Patch
           {
               private static bool Prefix(Item left_item, Item right_item, ref bool __result)
               {
-                  if (!LegendaryForge121.TryGetBaseBlade(left_item, out MeleeWeapon? weapon, out _)
-                      || !LegendaryForge121.IsGalaxySoul(right_item))
+                  if (!LegendaryForge122.TryGetBaseBlade(left_item, out MeleeWeapon? weapon, out _)
+                      || !LegendaryForge122.IsGalaxySoul(right_item))
                       return true;
 
                   __result = Game1.player.mailReceived.Contains(ModEntry.Mail2Id)
@@ -156,12 +201,12 @@ jobs:
           }
 
           [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.GetForgeCost))]
-          internal static class LegendaryBladeForgeCost121Patch
+          internal static class LegendaryBladeForgeCost122Patch
           {
               private static bool Prefix(Item left_item, Item right_item, ref int __result)
               {
-                  if (!LegendaryForge121.TryGetBaseBlade(left_item, out _, out _)
-                      || !LegendaryForge121.IsGalaxySoul(right_item))
+                  if (!LegendaryForge122.TryGetBaseBlade(left_item, out _, out _)
+                      || !LegendaryForge122.IsGalaxySoul(right_item))
                       return true;
 
                   __result = 20;
@@ -170,37 +215,34 @@ jobs:
           }
 
           [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.IsValidCraftIngredient))]
-          internal static class LegendaryBladeIngredient121Patch
+          internal static class LegendaryBladeIngredient122Patch
           {
               private static void Postfix(Item item, ref bool __result)
               {
                   if (__result || item is null)
                       return;
 
-                  if (LegendaryForge121.IsGalaxySoul(item))
+                  if (LegendaryForge122.IsGalaxySoul(item))
                   {
                       __result = true;
                       return;
                   }
 
-                  if (LegendaryForge121.TryGetBaseBlade(item, out _, out _))
+                  if (LegendaryForge122.TryGetBaseBlade(item, out _, out _))
                       __result = true;
               }
           }
 
-          // This is the critical v1.2.1 hook. ForgeMenu calls SpendRightItem exactly once after a
-          // successful craft has completed and immediately before the Galaxy Soul stack is reduced.
-          // That is later and more reliable than CraftItem/Tool.Forge, which other mods can bypass.
           [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.SpendRightItem))]
-          internal static class LegendaryBladeSpendRight121Patch
+          internal static class LegendaryBladeSpendRight122Patch
           {
               private static void Prefix(ForgeMenu __instance)
               {
                   Item? right = __instance.rightIngredientSpot?.item;
                   Item? left = __instance.leftIngredientSpot?.item;
 
-                  if (!LegendaryForge121.IsGalaxySoul(right)
-                      || !LegendaryForge121.TryGetBaseBlade(left, out MeleeWeapon? weapon, out BladeData? blade)
+                  if (!LegendaryForge122.IsGalaxySoul(right)
+                      || !LegendaryForge122.TryGetBaseBlade(left, out MeleeWeapon? weapon, out BladeData? blade)
                       || weapon is null || blade is null)
                       return;
 
@@ -211,9 +253,7 @@ jobs:
                   if (current >= 3)
                       return;
 
-                  // Remove any hidden vanilla GalaxySoulEnchantment that older/bypassed forge logic may have added.
-                  // Legendary Blades owns the 1/3, 2/3, 3/3 counter from here on.
-                  LegendaryForge121.RemoveVanillaGalaxySoul(weapon);
+                  LegendaryForge122.RemoveVanillaGalaxySoul(weapon);
 
                   int next = current + 1;
                   if (next < 3)
@@ -221,36 +261,34 @@ jobs:
                       weapon.modData[ModEntry.GalaxySoulDataKey] = next.ToString(CultureInfo.InvariantCulture);
                       string stageMessage = ModEntry.T(
                           "forge.stage",
-                          $"{weapon.DisplayName} absorbed Galaxy Soul {next} of 3.",
+                          $"{weapon.DisplayName}이(가) 갤럭시 소울을 흡수했습니다. {next}/3.",
                           new { name = weapon.DisplayName, stage = next }
                       );
                       Game1.showGlobalMessage(stageMessage);
-                      ModEntry.Instance?.Monitor.Log($"v1.2.1 SpendRightItem stage {next}/3: {weapon.ItemId}; right={right?.QualifiedItemId}.", LogLevel.Info);
+                      ModEntry.Instance?.Monitor.Log($"v1.2.2 강화 단계 {next}/3: {weapon.ItemId}; 재료={right?.QualifiedItemId}.", LogLevel.Info);
                       return;
                   }
 
                   string oldId = weapon.ItemId;
                   string oldName = weapon.DisplayName;
 
-                  // Mutate the exact same weapon instance. ForgeMenu's local crafted_item points to this
-                  // object, so when it assigns the result to heldItem a few lines later it is already evolved.
                   weapon.modData[ModEntry.GalaxySoulDataKey] = "3";
                   weapon.transform(blade.EvolvedItemId);
                   weapon.modData.Remove(ModEntry.GalaxySoulDataKey);
-                  LegendaryForge121.RemoveVanillaGalaxySoul(weapon);
+                  LegendaryForge122.RemoveVanillaGalaxySoul(weapon);
 
                   string complete = ModEntry.T(
                       "forge.complete",
-                      $"{oldName} has awakened into {weapon.DisplayName}!",
+                      $"{oldName}이(가) {weapon.DisplayName}(으)로 각성했습니다!",
                       new { name = oldName, evolved = weapon.DisplayName }
                   );
                   Game1.showGlobalMessage(complete);
-                  ModEntry.Instance?.Monitor.Log($"v1.2.1 SpendRightItem EVOLVED: {oldId} -> {weapon.ItemId}; right={right?.QualifiedItemId}.", LogLevel.Info);
+                  ModEntry.Instance?.Monitor.Log($"v1.2.2 진화 완료: {oldId} -> {weapon.ItemId}; 재료={right?.QualifiedItemId}.", LogLevel.Info);
               }
           }
           CS
 
-      - name: Build Legendary Blades v1.2.1
+      - name: Build Legendary Blades v1.2.2
         shell: bash
         run: |
           GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
@@ -259,13 +297,15 @@ jobs:
       - name: Stage package
         shell: bash
         run: |
-          mkdir -p package
+          mkdir -p package/i18n
           cp legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll package/LegendaryBlades.dll
           cp legendary-blades-fix/manifest.json package/manifest.json
+          cp legendary-blades-fix/i18n/default.json package/i18n/default.json
+          cp legendary-blades-fix/i18n/ko.json package/i18n/ko.json
 
-      - name: Upload v1.2.1 package
+      - name: Upload v1.2.2 package
         uses: actions/upload-artifact@v4
         with:
-          name: LegendaryBlades-v1.2.1-spend-right-forge
+          name: LegendaryBlades-v1.2.2-korean
           path: package/
           if-no-files-found: error
