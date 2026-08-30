@@ -26,7 +26,7 @@ jobs:
       - name: Add Stardew Valley and SMAPI reference assemblies
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
 
-      - name: Apply v1.2.2 forge and Korean localization hotfix
+      - name: Apply v1.2.2 spend-right forge hotfix
         shell: bash
         run: |
           python3 - <<'PY'
@@ -62,29 +62,9 @@ jobs:
               'commands'
           )
           replace_once(
-              'Monitor.Log($"Legendary Blades v{VersionText} loaded.", LogLevel.Info);',
-              'Monitor.Log($"Legendary Blades v{VersionText} 불러오기 완료.", LogLevel.Info);',
-              'load log Korean'
-          )
-          replace_once(
               'Description = T(evolved ? blade.EvolvedDescKey : blade.BaseDescKey, evolved ? "An awakened Legendary Blade." : "A Legendary Blade."),',
               'Description = T(evolved ? blade.EvolvedDescKey : blade.BaseDescKey, evolved ? "각성한 전설의 검." : "전설의 검."),',
               'description fallback Korean'
-          )
-          replace_once(
-              'mail[Mail1Id] = T("mail.marlon4.text", "@,^I have been watching your progress as a member of the Adventurer\'s Guild.^^When the time comes, I will tell you the rest.^^— Marlon");',
-              'mail[Mail1Id] = T("mail.marlon4.text", "@,^나는 네가 모험가 길드의 일원으로서 성장해 온 모습을 지켜봐 왔다.^^때가 되면 나머지 이야기도 들려주겠다.^^— 말론");',
-              'mail1 fallback Korean'
-          )
-          replace_once(
-              'mail[Mail2Id] = T("mail.marlon8.text", "@,^I think I have waited long enough.^^The form you know is not the final form of those weapons.^^— Marlon");',
-              'mail[Mail2Id] = T("mail.marlon8.text", "@,^이제 충분히 오래 기다린 것 같군.^^네가 알고 있는 모습은 그 무기들의 최종 형태가 아니다.^^— 말론");',
-              'mail2 fallback Korean'
-          )
-          replace_once(
-              'Game1.showRedMessage("20 Cinder Shards are required.");',
-              'Game1.showRedMessage(T("forge.cinder.required", "잉걸불 파편 20개가 필요합니다."));',
-              'cinder message Korean'
           )
           replace_once(
               '''    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)\n    {\n        ReconcileProgressionState();\n    }''',
@@ -102,29 +82,9 @@ jobs:
               'status and recovery commands'
           )
           replace_once(
-              'Monitor.Log("Legendary Blades v1.1.0 - diagnostics", LogLevel.Info);',
-              'Monitor.Log(T("cmd.diag.header", "Legendary Blades v1.2.2 - 진단"), LogLevel.Info);',
-              'diagnostics header'
-          )
-          replace_once(
-              'Monitor.Log("Target shop: AdventureShop", LogLevel.Info);',
-              'Monitor.Log(T("cmd.diag.shop", "대상 상점: 모험가 길드"), LogLevel.Info);',
-              'diagnostics shop'
-          )
-          replace_once(
-              'Monitor.Log($"Texture: {TextureAsset}", LogLevel.Info);',
-              'Monitor.Log(T("cmd.diag.texture", $"텍스처: {TextureAsset}"), LogLevel.Info);',
-              'diagnostics texture'
-          )
-          replace_once(
-              'Monitor.Log("Forge evolution: 3 Galaxy Souls, 20 Cinder Shards per forge, 60 total per sword.", LogLevel.Info);',
-              'Monitor.Log(T("cmd.diag.forge", "제련 진화: 갤럭시 소울 3개, 제련 1회당 잉걸불 파편 20개, 검 1자루당 총 60개."), LogLevel.Info);',
-              'diagnostics forge'
-          )
-          replace_once(
-              'Monitor.Log("Progression: Mines floor 100 -> first letter; Skull Cavern floor 150 -> second letter; no friendship requirement.", LogLevel.Info);',
-              'Monitor.Log("진행 조건: 광산 100층 -> 첫 번째 편지; 해골 동굴 150층 -> 두 번째 편지; 호감도 조건 없음.", LogLevel.Info);',
-              'diagnostics progression'
+              'Legendary Blades v1.1.0 - diagnostics',
+              'Legendary Blades v1.2.2 - 진단',
+              'diagnostics version'
           )
 
           p.write_text(s, encoding='utf-8')
