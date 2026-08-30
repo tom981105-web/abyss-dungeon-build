@@ -6,10 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>LegendaryBlades</AssemblyName>
     <RootNamespace>LegendaryBlades</RootNamespace>
-    <Version>1.1.4</Version>
-    <AssemblyVersion>1.1.4.0</AssemblyVersion>
-    <FileVersion>1.1.4.0</FileVersion>
-    <InformationalVersion>1.1.4</InformationalVersion>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <InformationalVersion>1.2.0</InformationalVersion>
     <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
   <ItemGroup>
