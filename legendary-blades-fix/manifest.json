@@ -1,8 +1,8 @@
 {
   "Name": "Legendary Blades",
   "Author": "Deyvid",
-  "Version": "1.2.1",
-  "Description": "Adds eight Legendary Blades with progression and reliable Volcano Forge evolutions.",
+  "Version": "1.2.2",
+  "Description": "광산 진행도와 화산 제련소 진화 시스템을 갖춘 전설의 검 8종을 추가합니다.",
   "UniqueID": "Deyvid.LegendaryBlades",
   "EntryDll": "LegendaryBlades.dll",
   "MinimumApiVersion": "4.0.0",
