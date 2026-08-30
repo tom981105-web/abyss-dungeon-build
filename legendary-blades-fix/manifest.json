@@ -1,8 +1,8 @@
 {
   "Name": "Legendary Blades",
   "Author": "Deyvid",
-  "Version": "1.2.0",
-  "Description": "Adds eight Legendary Blades with progression and deterministic Volcano Forge evolutions.",
+  "Version": "1.2.1",
+  "Description": "Adds eight Legendary Blades with progression and reliable Volcano Forge evolutions.",
   "UniqueID": "Deyvid.LegendaryBlades",
   "EntryDll": "LegendaryBlades.dll",
   "MinimumApiVersion": "4.0.0",
