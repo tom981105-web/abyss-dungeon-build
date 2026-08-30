@@ -26,7 +26,7 @@ jobs:
       - name: Add Stardew Valley and SMAPI reference assemblies
         uses: Pathoschild/SMAPI-ModBuildWorkflow/add-reference-assemblies@v1
 
-      - name: Apply v1.2.0 deterministic forge hotfix
+      - name: Apply v1.2.1 spend-right forge hotfix
         shell: bash
         run: |
           python3 - <<'PY'
@@ -42,13 +42,8 @@ jobs:
               s = s.replace(old, new, 1)
 
           replace_once(
-              'using StardewValley;\n',
-              'using StardewValley;\nusing StardewValley.Enchantments;\n',
-              'GalaxySoulEnchantment using'
-          )
-          replace_once(
               'internal const string VersionText = "1.1.0";',
-              'internal const string VersionText = "1.2.0";',
+              'internal const string VersionText = "1.2.1";',
               'version text'
           )
           replace_once(
@@ -59,38 +54,38 @@ jobs:
           replace_once(
               '[HarmonyPatch]\ninternal static class ForgeCraftPatch',
               'internal static class ForgeCraftPatch',
-              'disable old forge prefix'
+              'disable old CraftItem patch'
           )
           replace_once(
               'helper.ConsoleCommands.Add("legendaryblades_diag", "Print Legendary Blades diagnostics.", DiagCommand);',
               'helper.ConsoleCommands.Add("legendaryblades_diag", "Print Legendary Blades diagnostics.", DiagCommand);\n        helper.ConsoleCommands.Add("legendaryblades_status", "Print selected Legendary Blade forge state.", StatusCommand);\n        helper.ConsoleCommands.Add("legendaryblades_forceevolve", "Force-evolve the selected base Legendary Blade for recovery/testing.", ForceEvolveCommand);',
-              'diagnostic command registration'
+              'commands'
           )
           replace_once(
               '''    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)\n    {\n        ReconcileProgressionState();\n    }''',
-              '''    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)\n    {\n        ReconcileProgressionState();\n        RepairStuckBlades();\n    }''',
+              '''    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)\n    {\n        ReconcileProgressionState();\n        RepairCompletedStages();\n    }''',
               'save repair call'
           )
           replace_once(
               '''    private void OnDayStarted(object? sender, DayStartedEventArgs e)\n    {\n        ReconcileProgressionState();\n    }''',
-              '''    private void RepairStuckBlades()\n    {\n        if (!Context.IsWorldReady)\n            return;\n\n        for (int i = 0; i < Game1.player.Items.Count; i++)\n        {\n            if (Game1.player.Items[i] is not MeleeWeapon weapon)\n                continue;\n\n            BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n            if (blade is null || alreadyEvolved)\n                continue;\n\n            int legacy = GetGalaxySoulCount(weapon);\n            int vanilla = Math.Clamp(weapon.GetEnchantmentLevel<GalaxySoulEnchantment>(), 0, 3);\n            if (Math.Clamp(legacy + vanilla, 0, 3) < 3)\n                continue;\n\n            string oldName = weapon.DisplayName;\n            MeleeWeapon evolved = MakeWeapon(blade, true);\n            CopyWeaponState(weapon, evolved);\n            evolved.modData.Remove(GalaxySoulDataKey);\n            GalaxySoulEnchantment? soul = evolved.GetEnchantmentOfType<GalaxySoulEnchantment>();\n            if (soul is not null)\n                evolved.RemoveEnchantment(soul);\n\n            Game1.player.Items[i] = evolved;\n            string message = T("forge.complete", $"{oldName} has awakened into {evolved.DisplayName}!", new { name = oldName, evolved = evolved.DisplayName });\n            Game1.showGlobalMessage(message);\n            Monitor.Log($"v1.2.0 repaired stuck blade in slot {i}: {weapon.ItemId} -> {evolved.ItemId} (legacy={legacy}, vanilla={vanilla}).", LogLevel.Info);\n        }\n    }\n\n    private void OnDayStarted(object? sender, DayStartedEventArgs e)\n    {\n        ReconcileProgressionState();\n        RepairStuckBlades();\n    }''',
-              'stuck blade repair method'
+              '''    private void RepairCompletedStages()\n    {\n        if (!Context.IsWorldReady)\n            return;\n\n        foreach (Item? item in Game1.player.Items)\n        {\n            if (item is not MeleeWeapon weapon)\n                continue;\n\n            BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n            if (blade is null || alreadyEvolved || GetGalaxySoulCount(weapon) < 3)\n                continue;\n\n            string oldId = weapon.ItemId;\n            string oldName = weapon.DisplayName;\n            weapon.transform(blade.EvolvedItemId);\n            weapon.modData.Remove(GalaxySoulDataKey);\n            Game1.showGlobalMessage(T("forge.complete", $"{oldName} has awakened into {weapon.DisplayName}!", new { name = oldName, evolved = weapon.DisplayName }));\n            Monitor.Log($"v1.2.1 repaired completed stage: {oldId} -> {weapon.ItemId}.", LogLevel.Info);\n        }\n    }\n\n    private void OnDayStarted(object? sender, DayStartedEventArgs e)\n    {\n        ReconcileProgressionState();\n        RepairCompletedStages();\n    }''',
+              'repair method'
           )
           replace_once(
               '''    private void DiagCommand(string command, string[] args)\n    {''',
-              '''    private void StatusCommand(string command, string[] args)\n    {\n        Monitor.Log("Legendary Blades v1.2.0 selected-weapon status", LogLevel.Info);\n        if (!Context.IsWorldReady)\n        {\n            Monitor.Log("No save is loaded.", LogLevel.Warn);\n            return;\n        }\n\n        if (Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("Select a Legendary Blade in the hotbar first.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool evolved);\n        int legacy = GetGalaxySoulCount(weapon);\n        int vanilla = Math.Clamp(weapon.GetEnchantmentLevel<GalaxySoulEnchantment>(), 0, 3);\n        Monitor.Log($"ItemId={weapon.ItemId}; Qualified={weapon.QualifiedItemId}; recognized={blade is not null}; evolved={evolved}; legacyStage={legacy}; vanillaStage={vanilla}; mail2={Game1.player.mailReceived.Contains(Mail2Id)}", LogLevel.Info);\n    }\n\n    private void ForceEvolveCommand(string command, string[] args)\n    {\n        if (!Context.IsWorldReady || Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("Select a base Legendary Blade in the hotbar first.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n        if (blade is null || alreadyEvolved)\n        {\n            Monitor.Log(blade is null ? "The selected weapon is not a Legendary Blade." : "The selected Legendary Blade is already evolved.", LogLevel.Warn);\n            return;\n        }\n\n        int slot = Game1.player.Items.IndexOf(weapon);\n        if (slot < 0)\n        {\n            Monitor.Log("Could not find the selected weapon in the inventory.", LogLevel.Error);\n            return;\n        }\n\n        string oldName = weapon.DisplayName;\n        MeleeWeapon evolved = MakeWeapon(blade, true);\n        CopyWeaponState(weapon, evolved);\n        evolved.modData.Remove(GalaxySoulDataKey);\n        GalaxySoulEnchantment? soul = evolved.GetEnchantmentOfType<GalaxySoulEnchantment>();\n        if (soul is not null)\n            evolved.RemoveEnchantment(soul);\n        Game1.player.Items[slot] = evolved;\n\n        string message = T("forge.complete", $"{oldName} has awakened into {evolved.DisplayName}!", new { name = oldName, evolved = evolved.DisplayName });\n        Game1.showGlobalMessage(message);\n        Monitor.Log($"v1.2.0 force-evolved slot {slot}: {weapon.ItemId} -> {evolved.ItemId}.", LogLevel.Info);\n    }\n\n    private void DiagCommand(string command, string[] args)\n    {''',
+              '''    private void StatusCommand(string command, string[] args)\n    {\n        Monitor.Log("Legendary Blades v1.2.1 selected-weapon status", LogLevel.Info);\n        if (!Context.IsWorldReady || Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("Select a Legendary Blade in the hotbar first.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool evolved);\n        int stage = GetGalaxySoulCount(weapon);\n        Monitor.Log($"ItemId={weapon.ItemId}; Qualified={weapon.QualifiedItemId}; recognized={blade is not null}; evolved={evolved}; stage={stage}; mail2={Game1.player.mailReceived.Contains(Mail2Id)}", LogLevel.Info);\n    }\n\n    private void ForceEvolveCommand(string command, string[] args)\n    {\n        if (!Context.IsWorldReady || Game1.player.CurrentTool is not MeleeWeapon weapon)\n        {\n            Monitor.Log("Select a base Legendary Blade in the hotbar first.", LogLevel.Warn);\n            return;\n        }\n\n        BladeData? blade = GetBladeForWeapon(weapon, out bool alreadyEvolved);\n        if (blade is null || alreadyEvolved)\n        {\n            Monitor.Log(blade is null ? "The selected weapon is not a Legendary Blade." : "The selected Legendary Blade is already evolved.", LogLevel.Warn);\n            return;\n        }\n\n        string oldId = weapon.ItemId;\n        string oldName = weapon.DisplayName;\n        weapon.transform(blade.EvolvedItemId);\n        weapon.modData.Remove(GalaxySoulDataKey);\n        Game1.showGlobalMessage(T("forge.complete", $"{oldName} has awakened into {weapon.DisplayName}!", new { name = oldName, evolved = weapon.DisplayName }));\n        Monitor.Log($"v1.2.1 force-evolved: {oldId} -> {weapon.ItemId}.", LogLevel.Info);\n    }\n\n    private void DiagCommand(string command, string[] args)\n    {''',
               'status and recovery commands'
           )
           replace_once(
               'Legendary Blades v1.1.0 - diagnostics',
-              'Legendary Blades v1.2.0 - diagnostics',
+              'Legendary Blades v1.2.1 - diagnostics',
               'diagnostics version'
           )
 
           p.write_text(s, encoding='utf-8')
           PY
 
-          cat > legendary-blades-fix/DeterministicForgePatch.cs <<'CS'
+          cat > legendary-blades-fix/ForgeSpendRightPatch.cs <<'CS'
           using System;
           using System.Globalization;
           using HarmonyLib;
@@ -102,132 +97,175 @@ jobs:
 
           namespace LegendaryBlades;
 
-          internal static class LegendaryBladeStage
+          internal static class LegendaryForge121
           {
-              internal static int Legacy(MeleeWeapon weapon)
+              internal static bool IsGalaxySoul(Item? item)
+                  => item is not null
+                     && (string.Equals(item.QualifiedItemId, ModEntry.GalaxySoulId, StringComparison.Ordinal)
+                         || string.Equals(item.ItemId, "896", StringComparison.Ordinal));
+
+              internal static bool TryGetBaseBlade(Item? item, out MeleeWeapon? weapon, out BladeData? blade)
               {
-                  if (weapon.modData.TryGetValue(ModEntry.GalaxySoulDataKey, out string? raw)
-                      && int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
-                      return Math.Clamp(parsed, 0, 3);
-                  return 0;
+                  weapon = item as MeleeWeapon;
+                  blade = null;
+                  if (weapon is null)
+                      return false;
+
+                  blade = ModEntry.GetBladeForWeapon(weapon, out bool evolved);
+                  return blade is not null && !evolved;
               }
 
-              internal static int Vanilla(MeleeWeapon weapon)
-                  => Math.Clamp(weapon.GetEnchantmentLevel<GalaxySoulEnchantment>(), 0, 3);
-
-              internal static int Current(MeleeWeapon weapon)
-                  => Math.Clamp(Math.Max(Legacy(weapon), Vanilla(weapon)), 0, 3);
-
-              internal static void RemoveVanillaSoul(MeleeWeapon weapon)
+              internal static void RemoveVanillaGalaxySoul(MeleeWeapon weapon)
               {
                   GalaxySoulEnchantment? soul = weapon.GetEnchantmentOfType<GalaxySoulEnchantment>();
                   if (soul is not null)
                       weapon.RemoveEnchantment(soul);
               }
-
-              internal static MeleeWeapon MakeEvolved(MeleeWeapon source, BladeData blade)
-              {
-                  MeleeWeapon evolved = ModEntry.MakeWeapon(blade, true);
-                  ModEntry.CopyWeaponState(source, evolved);
-                  evolved.modData.Remove(ModEntry.GalaxySoulDataKey);
-                  RemoveVanillaSoul(evolved);
-                  return evolved;
-              }
           }
 
           [HarmonyPatch(typeof(Tool), nameof(Tool.CanForge))]
-          internal static class LegendaryBladeCanForgeDeterministicPatch
+          internal static class LegendaryBladeCanForge121Patch
           {
               private static void Postfix(Tool __instance, Item item, ref bool __result)
               {
-                  if (__instance is not MeleeWeapon weapon || item?.QualifiedItemId != ModEntry.GalaxySoulId)
+                  if (__instance is not MeleeWeapon weapon || !LegendaryForge121.IsGalaxySoul(item))
                       return;
 
                   BladeData? blade = ModEntry.GetBladeForWeapon(weapon, out bool evolved);
                   if (blade is null || evolved)
                       return;
 
-                  bool unlocked = Game1.player.mailReceived.Contains(ModEntry.Mail2Id);
-                  __result = unlocked && LegendaryBladeStage.Current(weapon) < 3;
+                  __result = Game1.player.mailReceived.Contains(ModEntry.Mail2Id)
+                             && ModEntry.GetGalaxySoulCount(weapon) < 3;
               }
           }
 
-          [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.CraftItem))]
-          internal static class LegendaryBladeCraftDeterministicPatch
+          [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.IsValidCraft))]
+          internal static class LegendaryBladeIsValidCraft121Patch
           {
-              private static bool Prefix(Item left_item, Item right_item, bool forReal, ref Item? __result)
+              private static bool Prefix(Item left_item, Item right_item, ref bool __result)
               {
-                  if (left_item is not MeleeWeapon weapon || right_item?.QualifiedItemId != ModEntry.GalaxySoulId)
+                  if (!LegendaryForge121.TryGetBaseBlade(left_item, out MeleeWeapon? weapon, out _)
+                      || !LegendaryForge121.IsGalaxySoul(right_item))
                       return true;
 
-                  BladeData? blade = ModEntry.GetBladeForWeapon(weapon, out bool alreadyEvolved);
-                  if (blade is null || alreadyEvolved)
+                  __result = Game1.player.mailReceived.Contains(ModEntry.Mail2Id)
+                             && ModEntry.GetGalaxySoulCount(weapon!) < 3;
+                  return false;
+              }
+          }
+
+          [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.GetForgeCost))]
+          internal static class LegendaryBladeForgeCost121Patch
+          {
+              private static bool Prefix(Item left_item, Item right_item, ref int __result)
+              {
+                  if (!LegendaryForge121.TryGetBaseBlade(left_item, out _, out _)
+                      || !LegendaryForge121.IsGalaxySoul(right_item))
                       return true;
+
+                  __result = 20;
+                  return false;
+              }
+          }
+
+          [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.IsValidCraftIngredient))]
+          internal static class LegendaryBladeIngredient121Patch
+          {
+              private static void Postfix(Item item, ref bool __result)
+              {
+                  if (__result || item is null)
+                      return;
+
+                  if (LegendaryForge121.IsGalaxySoul(item))
+                  {
+                      __result = true;
+                      return;
+                  }
+
+                  if (LegendaryForge121.TryGetBaseBlade(item, out _, out _))
+                      __result = true;
+              }
+          }
+
+          // This is the critical v1.2.1 hook. ForgeMenu calls SpendRightItem exactly once after a
+          // successful craft has completed and immediately before the Galaxy Soul stack is reduced.
+          // That is later and more reliable than CraftItem/Tool.Forge, which other mods can bypass.
+          [HarmonyPatch(typeof(ForgeMenu), nameof(ForgeMenu.SpendRightItem))]
+          internal static class LegendaryBladeSpendRight121Patch
+          {
+              private static void Prefix(ForgeMenu __instance)
+              {
+                  Item? right = __instance.rightIngredientSpot?.item;
+                  Item? left = __instance.leftIngredientSpot?.item;
+
+                  if (!LegendaryForge121.IsGalaxySoul(right)
+                      || !LegendaryForge121.TryGetBaseBlade(left, out MeleeWeapon? weapon, out BladeData? blade)
+                      || weapon is null || blade is null)
+                      return;
 
                   if (!Game1.player.mailReceived.Contains(ModEntry.Mail2Id))
+                      return;
+
+                  int current = ModEntry.GetGalaxySoulCount(weapon);
+                  if (current >= 3)
+                      return;
+
+                  // Remove any hidden vanilla GalaxySoulEnchantment that older/bypassed forge logic may have added.
+                  // Legendary Blades owns the 1/3, 2/3, 3/3 counter from here on.
+                  LegendaryForge121.RemoveVanillaGalaxySoul(weapon);
+
+                  int next = current + 1;
+                  if (next < 3)
                   {
-                      if (forReal)
-                          Game1.showRedMessage(ModEntry.T("story.forge.locked", "These blades have not revealed their secret to you yet."));
-                      __result = null;
-                      return false;
-                  }
-
-                  int stage = Math.Clamp(Math.Max(LegendaryBladeStage.Legacy(weapon), LegendaryBladeStage.Vanilla(weapon)), 0, 2);
-
-                  // Preview path: ForgeMenu calls CraftItem on a clone while validating the recipe.
-                  if (!forReal)
-                  {
-                      __result = stage >= 2 ? LegendaryBladeStage.MakeEvolved(weapon, blade) : weapon;
-                      return false;
-                  }
-
-                  // From v1.2.0 onward this mod owns the Galaxy Soul counter for its custom blades.
-                  // Normalize any leftover vanilla GalaxySoulEnchantment from earlier broken builds first.
-                  LegendaryBladeStage.RemoveVanillaSoul(weapon);
-                  weapon.modData[ModEntry.GalaxySoulDataKey] = stage.ToString(CultureInfo.InvariantCulture);
-
-                  int nextStage = stage + 1;
-                  if (nextStage < 3)
-                  {
-                      weapon.modData[ModEntry.GalaxySoulDataKey] = nextStage.ToString(CultureInfo.InvariantCulture);
-                      __result = weapon;
-
+                      weapon.modData[ModEntry.GalaxySoulDataKey] = next.ToString(CultureInfo.InvariantCulture);
                       string stageMessage = ModEntry.T(
                           "forge.stage",
-                          $"{weapon.DisplayName} absorbed Galaxy Soul {nextStage} of 3.",
-                          new { name = weapon.DisplayName, stage = nextStage }
+                          $"{weapon.DisplayName} absorbed Galaxy Soul {next} of 3.",
+                          new { name = weapon.DisplayName, stage = next }
                       );
                       Game1.showGlobalMessage(stageMessage);
-                      ModEntry.Instance?.Monitor.Log($"v1.2.0 deterministic forge {nextStage}/3: {weapon.ItemId}.", LogLevel.Info);
-                      return false;
+                      ModEntry.Instance?.Monitor.Log($"v1.2.1 SpendRightItem stage {next}/3: {weapon.ItemId}; right={right?.QualifiedItemId}.", LogLevel.Info);
+                      return;
                   }
 
-                  string oldName = weapon.DisplayName;
                   string oldId = weapon.ItemId;
-                  MeleeWeapon evolved = LegendaryBladeStage.MakeEvolved(weapon, blade);
-                  __result = evolved;
+                  string oldName = weapon.DisplayName;
 
-                  string message = ModEntry.T(
+                  // Mutate the exact same weapon instance. ForgeMenu's local crafted_item points to this
+                  // object, so when it assigns the result to heldItem a few lines later it is already evolved.
+                  weapon.modData[ModEntry.GalaxySoulDataKey] = "3";
+                  weapon.transform(blade.EvolvedItemId);
+                  weapon.modData.Remove(ModEntry.GalaxySoulDataKey);
+                  LegendaryForge121.RemoveVanillaGalaxySoul(weapon);
+
+                  string complete = ModEntry.T(
                       "forge.complete",
-                      $"{oldName} has awakened into {evolved.DisplayName}!",
-                      new { name = oldName, evolved = evolved.DisplayName }
+                      $"{oldName} has awakened into {weapon.DisplayName}!",
+                      new { name = oldName, evolved = weapon.DisplayName }
                   );
-                  Game1.showGlobalMessage(message);
-                  ModEntry.Instance?.Monitor.Log($"v1.2.0 deterministic EVOLUTION: {oldId} -> {evolved.ItemId}.", LogLevel.Info);
-                  return false;
+                  Game1.showGlobalMessage(complete);
+                  ModEntry.Instance?.Monitor.Log($"v1.2.1 SpendRightItem EVOLVED: {oldId} -> {weapon.ItemId}; right={right?.QualifiedItemId}.", LogLevel.Info);
               }
           }
           CS
 
-      - name: Build Legendary Blades v1.2.0
+      - name: Build Legendary Blades v1.2.1
         shell: bash
         run: |
           GAME_PATH="$HOME/.steam/steam/steamapps/common/Stardew Valley"
           dotnet build legendary-blades-fix/LegendaryBlades.csproj -c Release /p:GamePath="$GAME_PATH"
 
-      - name: Upload standalone DLL
+      - name: Stage package
+        shell: bash
+        run: |
+          mkdir -p package
+          cp legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll package/LegendaryBlades.dll
+          cp legendary-blades-fix/manifest.json package/manifest.json
+
+      - name: Upload v1.2.1 package
         uses: actions/upload-artifact@v4
         with:
-          name: LegendaryBlades-v1.2.0-deterministic-forge
-          path: legendary-blades-fix/bin/Release/net6.0/LegendaryBlades.dll
+          name: LegendaryBlades-v1.2.1-spend-right-forge
+          path: package/
           if-no-files-found: error
